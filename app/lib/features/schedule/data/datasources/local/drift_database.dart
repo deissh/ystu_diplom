@@ -1,0 +1,1 @@
+// Placeholder: Drift database definition
