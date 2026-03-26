@@ -1,0 +1,1 @@
+// Placeholder: GoRouter / AutoRoute configuration
