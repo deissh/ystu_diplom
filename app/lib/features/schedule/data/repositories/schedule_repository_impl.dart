@@ -10,7 +10,17 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     required DateTime from,
     required DateTime to,
   }) async {
-    // TODO: implement — fetch from remote, fallback to local cache
+    // TODO: fetch from remote, fallback to local cache
     return [];
+  }
+
+  @override
+  Stream<List<ScheduleDay>> watchSchedule({
+    required String groupId,
+    required DateTime from,
+    required DateTime to,
+  }) {
+    // TODO: delegate to ScheduleDao.watchLessons() and group into ScheduleDay
+    return const Stream.empty();
   }
 }
