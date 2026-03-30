@@ -27,7 +27,6 @@ final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
 /// с экрана расписания, избегая мигания загрузки при возврате.
 ///
 /// TODO: параметризовать groupId/from/to через profileProvider.
-/// Сейчас возвращает Stream.empty() (ScheduleRepositoryImpl заглушка).
 final scheduleProvider = StreamProvider<List<ScheduleDay>>((ref) {
   ref.keepAlive();
   final repo = ref.watch(scheduleRepositoryProvider);
@@ -37,3 +36,9 @@ final scheduleProvider = StreamProvider<List<ScheduleDay>>((ref) {
     to: DateTime.utc(2030),
   );
 });
+
+/// Currently selected day in the WeekStrip.
+///
+/// Initialized to today. WeekStrip writes to this provider on tap;
+/// ScheduleScreen reads it to filter the lesson list.
+final selectedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());

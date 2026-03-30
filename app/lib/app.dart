@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/constants/app_constants.dart';
+import 'core/theme/app_theme.dart';
 import 'router/app_router.dart';
 
 class App extends ConsumerWidget {
@@ -11,10 +12,9 @@ class App extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
       title: AppConstants.appName,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: AppThemeData.light(),
+      darkTheme: AppThemeData.dark(),
+      themeMode: ThemeMode.dark,
       routerConfig: appRouter,
     );
   }

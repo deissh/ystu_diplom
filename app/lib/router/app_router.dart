@@ -3,14 +3,12 @@ import 'package:go_router/go_router.dart';
 
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/schedule/presentation/screens/schedule_screen.dart';
-import '../features/settings/presentation/screens/settings_screen.dart';
 
 // Ключи навигаторов — top-level, чтобы избежать пересоздания.
 // GoRouter v14: navigatorKey обязателен для каждого StatefulShellBranch.
 final _rootNavKey = GlobalKey<NavigatorState>();
 final _scheduleNavKey = GlobalKey<NavigatorState>(debugLabel: 'schedule');
 final _profileNavKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
-final _settingsNavKey = GlobalKey<NavigatorState>(debugLabel: 'settings');
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavKey,
@@ -34,15 +32,6 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/profile',
               builder: (context, state) => const ProfileScreen(),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          navigatorKey: _settingsNavKey,
-          routes: [
-            GoRoute(
-              path: '/settings',
-              builder: (context, state) => const SettingsScreen(),
             ),
           ],
         ),
