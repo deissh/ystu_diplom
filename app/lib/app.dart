@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class App extends StatelessWidget {
+import 'core/constants/app_constants.dart';
+import 'core/theme/app_theme.dart';
+import 'router/app_router.dart';
+
+class App extends ConsumerWidget {
   const App({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'YSTU Schedule',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return MaterialApp.router(
+      title: AppConstants.appName,
+      theme: AppThemeData.light(),
+      darkTheme: AppThemeData.dark(),
+      themeMode: ThemeMode.dark,
+      routerConfig: appRouter,
     );
   }
 }

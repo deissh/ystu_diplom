@@ -23,10 +23,19 @@ class LessonModel {
       teacher: json['teacher'] as String,
       room: json['room'] as String,
       type: json['type'] as String,
-      startTime: DateTime.parse(json['start_time'] as String),
-      endTime: DateTime.parse(json['end_time'] as String),
+      startTime: DateTime.parse(json['start_time'] as String).toUtc(),
+      endTime: DateTime.parse(json['end_time'] as String).toUtc(),
     );
   }
+
+  factory LessonModel.fromEntity(Lesson e) => LessonModel(
+        subject: e.subject,
+        teacher: e.teacher,
+        room: e.room,
+        type: e.type,
+        startTime: e.startTime.toUtc(),
+        endTime: e.endTime.toUtc(),
+      );
 
   Lesson toEntity() => Lesson(
         subject: subject,

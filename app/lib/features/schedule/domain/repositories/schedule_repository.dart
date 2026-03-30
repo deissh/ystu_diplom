@@ -6,4 +6,10 @@ abstract interface class ScheduleRepository {
     required DateTime from,
     required DateTime to,
   });
+
+  Stream<List<ScheduleDay>> watchSchedule({
+    required String groupId,
+    required DateTime from,
+    required DateTime to,
+  });
 }

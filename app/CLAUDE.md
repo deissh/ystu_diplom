@@ -13,6 +13,8 @@ flutter build apk        # build Android APK
 flutter analyze          # static analysis (flutter_lints)
 flutter test             # run all tests
 flutter test test/widget_test.dart  # run a single test file
+dart run build_runner build --delete-conflicting-outputs  # regenerate Drift code after schema changes
+dart run build_runner watch --delete-conflicting-outputs  # watch mode during Drift development
 ```
 
 ## Architecture
