@@ -37,8 +37,8 @@ Data flow for `schedule`:
 
 ```
 lib/
-├── main.dart                         # runApp only
-├── app.dart                          # MaterialApp root widget
+├── main.dart                         # ProviderScope + runApp
+├── app.dart                          # ConsumerWidget MaterialApp.router root
 ├── core/
 │   ├── constants/app_constants.dart
 │   ├── errors/
@@ -46,51 +46,31 @@ lib/
 │   │   └── failure.dart              # sealed — propagated through domain
 │   ├── extensions/date_time_extensions.dart
 │   ├── logger.dart                   # AppLogger (debug-only debugPrint wrapper)
-│   └── network/dio_client.dart       # Dio instance (stub)
+│   ├── network/dio_client.dart       # Dio instance (stub)
+│   └── theme/
+│       ├── app_colors.dart           # iOS-style palette, light/dark + subject colors
+│       ├── app_text_styles.dart
+│       └── app_theme.dart            # AppThemeData.light() / .dark()
 ├── features/
 │   ├── schedule/
 │   │   ├── domain/
-│   │   │   ├── entities/             # Lesson, ScheduleDay
+│   │   │   ├── entities/             # Lesson, ScheduleDay, LessonType
 │   │   │   ├── repositories/schedule_repository.dart
 │   │   │   └── use_cases/            # GetSchedule
 │   │   ├── data/
 │   │   │   ├── datasources/
-│   │   │   │   ├── local/            # drift_database.dart, schedule_dao.dart, migrations/
-│   │   │   │   └── remote/           # api_client.dart, parser.dart
+│   │   │   │   ├── local/            # drift_database.dart (+.g.dart), schedule_dao.dart (+.g.dart)
+│   │   │   │   └── remote/           # api_client.dart, parser.dart (stubs)
 │   │   │   ├── models/lesson_model.dart
 │   │   │   └── repositories/schedule_repository_impl.dart
 │   │   └── presentation/
 │   │       ├── screens/schedule_screen.dart
-│   │       ├── widgets/
+│   │       ├── widgets/              # sync_status_bar, week_strip, timeline/*
 │   │       └── providers/schedule_provider.dart
-│   ├── profile/
-│   │   ├── domain/
-│   │   │   ├── entities/profile.dart
-│   │   │   ├── repositories/profile_repository.dart
-│   │   │   └── use_cases/            # GetProfile, SaveProfile
-│   │   ├── data/
-│   │   │   ├── datasources/local/profile_local_datasource.dart
-│   │   │   ├── models/profile_model.dart
-│   │   │   └── repositories/profile_repository_impl.dart
-│   │   └── presentation/
-│   │       ├── screens/profile_screen.dart
-│   │       ├── widgets/
-│   │       └── providers/profile_provider.dart
-│   └── settings/
-│       ├── domain/
-│       │   ├── entities/app_settings.dart  # AppSettings + AppTheme enum + defaults
-│       │   ├── repositories/settings_repository.dart
-│       │   └── use_cases/            # GetSettings, SaveSettings
-│       ├── data/
-│       │   ├── datasources/local/settings_local_datasource.dart
-│       │   ├── models/app_settings_model.dart
-│       │   └── repositories/settings_repository_impl.dart
-│       └── presentation/
-│           ├── screens/settings_screen.dart
-│           ├── widgets/
-│           └── providers/settings_provider.dart
-├── router/app_router.dart            # navigation (stub)
-└── l10n/                             # localisation (stub)
+│   ├── profile/                      # storage not yet implemented
+│   └── settings/                     # storage not yet implemented
+├── router/app_router.dart            # GoRouter with StatefulShellRoute (3 tabs)
+└── l10n/                             # stub
 ```
 
 Each feature follows the same three-layer layout:
@@ -99,19 +79,30 @@ Each feature follows the same three-layer layout:
 |---|---|
 | `domain/` | Entities, abstract repository interfaces (`abstract interface class`), use cases |
 | `data/` | DTOs (`*Model`) with `fromJson/toJson/fromEntity/toEntity`, datasource stubs, repository implementations |
-| `presentation/` | Screens, widgets, Riverpod providers (not yet added as a dependency) |
+| `presentation/` | Screens, widgets, Riverpod providers |
 
 ### Key conventions
 
 - Repository interfaces live in `domain/repositories/` and are `abstract interface class`.
 - Implementations in `data/repositories/*_impl.dart` own the offline-first logic: serve cache, sync remote, write back.
 - DTOs are named `*Model` and always expose `toEntity()` / `fromEntity()` — never pass models into the domain layer.
-- Error types: `AppException` (thrown by datasources), `Failure` (returned up through the domain) — both are sealed classes.
+- Error types: `AppException` (thrown by datasources), `Failure` (returned up through domain) — both are sealed classes.
 - `AppLogger` wraps `debugPrint` and is debug-only; use it instead of `print`.
+- Theme colors: use `AppColors.resolve(context, light, dark)` for brightness-aware colors; subject-specific colors are in `app_colors.dart`.
 
-### Planned dependencies (not yet in pubspec.yaml)
+### Dependencies
 
-- **Riverpod** — state management (`presentation/providers/`)
-- **Drift** — local SQLite cache for schedule (`data/datasources/local/drift_database.dart`)
-- **Dio** — HTTP client (`core/network/dio_client.dart`, `data/datasources/remote/api_client.dart`)
-- **GoRouter or AutoRoute** — navigation (`router/app_router.dart`)
+- **flutter_riverpod** — state management (`presentation/providers/`)
+- **Drift + drift_flutter + drift_dev** — local SQLite ORM; `.g.dart` files are code-generated, run `build_runner` after schema changes
+- **Dio** — HTTP client (configured in `core/network/dio_client.dart`)
+- **GoRouter** — declarative navigation (`router/app_router.dart`)
+- **path_provider** — resolves DB file path on device
+
+### Known stubs / TODOs
+
+- `schedule_repository_impl.dart` — `getSchedule()`/`watchSchedule()` return hardcoded mock data; real Drift + API integration is pending.
+- `api_client.dart`, `parser.dart` — empty stubs; remote fetch not implemented.
+- `dio_client.dart` — Dio instance not yet configured.
+- `profile_provider.dart`, `settings_provider.dart` — empty files; persistence via SharedPreferences not yet wired.
+- Settings tab in the bottom navigation bar is visually present but the GoRouter branch for `/settings` is not yet defined.
+- `l10n/` — localisation stub only.

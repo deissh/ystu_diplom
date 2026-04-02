@@ -12,6 +12,8 @@ import '../providers/schedule_provider.dart';
 class WeekStrip extends ConsumerWidget {
   const WeekStrip({super.key});
 
+  static const Duration _limit = Duration(days: 28);
+
   static const List<String> _dayLabels = [
     'ПН',
     'ВТ',
@@ -25,6 +27,7 @@ class WeekStrip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDay = ref.watch(selectedDayProvider);
+    final currentMonday = ref.watch(currentWeekProvider);
     final scheduleAsync = ref.watch(scheduleProvider);
 
     // Days that have at least one lesson
@@ -35,12 +38,18 @@ class WeekStrip extends ConsumerWidget {
       }
     });
 
-    final now = DateTime.now();
-    // Monday of current week
-    final monday = now.subtract(Duration(days: now.weekday - 1));
+    final today = DateTime.now();
+    final todayMonday = mondayOf(DateTime(today.year, today.month, today.day));
+    final minMonday = todayMonday.subtract(_limit);
+    final maxMonday = todayMonday.add(_limit);
+    final canGoPrev = currentMonday.isAfter(minMonday);
+    final canGoNext = currentMonday.isBefore(maxMonday);
 
-    final Color surface =
-        AppColors.resolve(context, AppColors.surfaceLight, AppColors.surfaceDark);
+    final Color surface = AppColors.resolve(
+      context,
+      AppColors.surfaceLight,
+      AppColors.surfaceDark,
+    );
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
@@ -59,23 +68,67 @@ class WeekStrip extends ConsumerWidget {
                 ),
               ],
       ),
-      child: Row(
-        children: List.generate(7, (i) {
-          final day = monday.add(Duration(days: i));
-          final isSelected = _isSameDay(day, selectedDay);
-          final hasLessons = daysWithLessons.contains(_dayKey(day));
-          return Expanded(
-            child: _DayChip(
-              dayLabel: _dayLabels[i],
-              dayNumber: day.day,
-              isSelected: isSelected,
-              hasLessons: hasLessons,
-              onTap: () => ref.read(selectedDayProvider.notifier).state = day,
+      child: GestureDetector(
+        onHorizontalDragEnd: (details) {
+          final dx = details.primaryVelocity ?? 0;
+          if (dx < -50 && canGoNext) {
+            _shiftWeek(ref, 7);
+          } else if (dx > 50 && canGoPrev) {
+            _shiftWeek(ref, -7);
+          }
+        },
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: canGoPrev ? () => _shiftWeek(ref, -7) : null,
+              icon: const Icon(Icons.chevron_left),
+              visualDensity: VisualDensity.compact,
             ),
-          );
-        }),
+            Expanded(
+              child: Row(
+                children: List.generate(7, (i) {
+                  final day = currentMonday.add(Duration(days: i));
+                  final isSelected = _isSameDay(day, selectedDay);
+                  final hasLessons = daysWithLessons.contains(_dayKey(day));
+                  return Expanded(
+                    child: _DayChip(
+                      dayLabel: _dayLabels[i],
+                      dayNumber: day.day,
+                      isSelected: isSelected,
+                      hasLessons: hasLessons,
+                      onTap: () =>
+                          ref.read(selectedDayProvider.notifier).state = day,
+                    ),
+                  );
+                }),
+              ),
+            ),
+            IconButton(
+              onPressed: canGoNext ? () => _shiftWeek(ref, 7) : null,
+              icon: const Icon(Icons.chevron_right),
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  void _shiftWeek(WidgetRef ref, int dayDelta) {
+    final currentMonday = ref.read(currentWeekProvider);
+    final nextMonday = currentMonday.add(Duration(days: dayDelta));
+
+    ref.read(currentWeekProvider.notifier).state = nextMonday;
+
+    final selectedDay = ref.read(selectedDayProvider);
+    final lastDayOfWeek = nextMonday.add(const Duration(days: 6));
+    final isSelectedWithinWeek =
+        !selectedDay.isBefore(nextMonday) &&
+        !selectedDay.isAfter(lastDayOfWeek);
+
+    if (!isSelectedWithinWeek) {
+      ref.read(selectedDayProvider.notifier).state = nextMonday;
+    }
   }
 
   static int _dayKey(DateTime d) => d.year * 10000 + d.month * 100 + d.day;
@@ -103,16 +156,26 @@ class _DayChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color accent =
-        AppColors.resolve(context, AppColors.accentLight, AppColors.accentDark);
-    final Color label2 =
-        AppColors.resolve(context, AppColors.label2Light, AppColors.label2Dark);
-    final Color label3 =
-        AppColors.resolve(context, AppColors.label3Light, AppColors.label3Dark);
+    final Color accent = AppColors.resolve(
+      context,
+      AppColors.accentLight,
+      AppColors.accentDark,
+    );
+    final Color label2 = AppColors.resolve(
+      context,
+      AppColors.label2Light,
+      AppColors.label2Dark,
+    );
+    final Color label3 = AppColors.resolve(
+      context,
+      AppColors.label3Light,
+      AppColors.label3Dark,
+    );
 
     final Color textColor = isSelected ? Colors.white : label2;
-    final Color labelColor =
-        isSelected ? Colors.white.withValues(alpha: 0.85) : label3;
+    final Color labelColor = isSelected
+        ? Colors.white.withValues(alpha: 0.85)
+        : label3;
     final Color dotColor = isSelected ? Colors.white : accent;
 
     return GestureDetector(

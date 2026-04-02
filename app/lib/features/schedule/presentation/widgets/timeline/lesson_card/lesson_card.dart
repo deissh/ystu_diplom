@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/theme/app_text_styles.dart';
 import '../../../../domain/entities/lesson.dart';
+import '../../../../domain/entities/lesson_type.dart';
+import '../../../providers/schedule_provider.dart';
 import 'active_badge.dart';
 import 'lesson_progress_bar.dart';
 import 'teacher_chip.dart';
@@ -12,25 +15,34 @@ import 'teacher_chip.dart';
 /// Shows the lesson type badge, subject name, teacher, room, and — when
 /// the lesson is currently active — an [ActiveBadge] and [LessonProgressBar].
 /// Completed lessons are rendered at reduced opacity (0.48).
-class LessonCard extends StatelessWidget {
+class LessonCard extends ConsumerWidget {
   const LessonCard({super.key, required this.lesson});
 
   final Lesson lesson;
 
   @override
-  Widget build(BuildContext context) {
-    final now = DateTime.now();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final now = ref.watch(nowProvider).valueOrNull ?? DateTime.now();
     final isActive =
         now.isAfter(lesson.startTime) && now.isBefore(lesson.endTime);
     final isPast = now.isAfter(lesson.endTime);
 
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color surface =
-        AppColors.resolve(context, AppColors.surfaceLight, AppColors.surfaceDark);
-    final Color label2 =
-        AppColors.resolve(context, AppColors.label2Light, AppColors.label2Dark);
-    final Color label3 =
-        AppColors.resolve(context, AppColors.label3Light, AppColors.label3Dark);
+    final Color surface = AppColors.resolve(
+      context,
+      AppColors.surfaceLight,
+      AppColors.surfaceDark,
+    );
+    final Color label2 = AppColors.resolve(
+      context,
+      AppColors.label2Light,
+      AppColors.label2Dark,
+    );
+    final Color label3 = AppColors.resolve(
+      context,
+      AppColors.label3Light,
+      AppColors.label3Dark,
+    );
     final Color stripColor = AppColors.subjectColor(lesson.subject);
 
     return Opacity(
@@ -73,8 +85,9 @@ class LessonCard extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 lesson.subject,
-                                style: AppTextStyles.subjectName
-                                    .copyWith(color: label2),
+                                style: AppTextStyles.subjectName.copyWith(
+                                  color: label2,
+                                ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -97,8 +110,7 @@ class LessonCard extends StatelessWidget {
                             const SizedBox(width: 2),
                             Text(
                               lesson.room,
-                              style:
-                                  AppTextStyles.meta.copyWith(color: label3),
+                              style: AppTextStyles.meta.copyWith(color: label3),
                             ),
                           ],
                         ),
@@ -110,6 +122,7 @@ class LessonCard extends StatelessWidget {
                           LessonProgressBar(
                             startTime: lesson.startTime,
                             endTime: lesson.endTime,
+                            now: now,
                           ),
                         ],
                       ],
@@ -130,7 +143,7 @@ class LessonCard extends StatelessWidget {
 class _TypeBadge extends StatelessWidget {
   const _TypeBadge({required this.type});
 
-  final String type;
+  final LessonType type;
 
   @override
   Widget build(BuildContext ctx) {
@@ -142,22 +155,34 @@ class _TypeBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
-        type.toUpperCase(),
+        type.label,
         style: AppTextStyles.badge.copyWith(color: Colors.white),
       ),
     );
   }
 
   Color _typeColor(BuildContext ctx) {
-    return switch (type.toUpperCase()) {
-      'ЛЕК' =>
-        AppColors.resolve(ctx, AppColors.accentLight, AppColors.accentDark),
-      'ПР' =>
-        AppColors.resolve(ctx, AppColors.greenLight, AppColors.greenDark),
-      'ЛАБ' =>
-        AppColors.resolve(ctx, AppColors.orangeLight, AppColors.orangeDark),
-      _ =>
-        AppColors.resolve(ctx, AppColors.label3Light, AppColors.label3Dark),
+    return switch (type) {
+      LessonType.lecture => AppColors.resolve(
+        ctx,
+        AppColors.accentLight,
+        AppColors.accentDark,
+      ),
+      LessonType.practice => AppColors.resolve(
+        ctx,
+        AppColors.greenLight,
+        AppColors.greenDark,
+      ),
+      LessonType.lab => AppColors.resolve(
+        ctx,
+        AppColors.orangeLight,
+        AppColors.orangeDark,
+      ),
+      LessonType.other => AppColors.resolve(
+        ctx,
+        AppColors.label3Light,
+        AppColors.label3Dark,
+      ),
     };
   }
 }

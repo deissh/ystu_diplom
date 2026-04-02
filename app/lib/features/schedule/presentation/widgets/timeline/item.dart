@@ -4,6 +4,7 @@ import 'package:flutter/widget_previews.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_text_styles.dart';
 import '../../../domain/entities/lesson.dart';
+import '../../../domain/entities/lesson_type.dart';
 import 'lesson_card/lesson_card.dart';
 
 /// A single row in the schedule timeline.
@@ -29,7 +30,7 @@ class TimelineItem extends StatelessWidget {
           subject: 'Математический анализ',
           teacher: 'Иванов А.В.',
           room: '301',
-          type: 'ЛЕК',
+          type: LessonType.lecture,
           startTime: DateTime(now.year, now.month, now.day, 8, 0),
           endTime: DateTime(now.year, now.month, now.day, 9, 35),
         ),
@@ -39,10 +40,16 @@ class TimelineItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color label2 =
-        AppColors.resolve(context, AppColors.label2Light, AppColors.label2Dark);
-    final Color label3 =
-        AppColors.resolve(context, AppColors.label3Light, AppColors.label3Dark);
+    final Color label2 = AppColors.resolve(
+      context,
+      AppColors.label2Light,
+      AppColors.label2Dark,
+    );
+    final Color label3 = AppColors.resolve(
+      context,
+      AppColors.label3Light,
+      AppColors.label3Dark,
+    );
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

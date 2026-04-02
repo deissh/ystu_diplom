@@ -1,8 +1,10 @@
+import 'lesson_type.dart';
+
 class Lesson {
   final String subject;
   final String teacher;
   final String room;
-  final String type;
+  final LessonType type;
   final DateTime startTime;
   final DateTime endTime;
 

@@ -17,52 +17,69 @@ class SyncStatusBar extends ConsumerWidget {
 
   @Preview(group: 'schedule', name: 'SyncStatusBar')
   static Widget preview() {
-    return ProviderScope(
-      child: SyncStatusBar(),
-    );
+    return ProviderScope(child: SyncStatusBar());
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheduleAsync = ref.watch(scheduleProvider);
+    final now = ref.watch(nowProvider).valueOrNull ?? DateTime.now();
 
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final (Color dotColor, String label, bool isLoading) = switch (scheduleAsync) {
+    final (
+      Color dotColor,
+      String label,
+      bool isLoading,
+    ) = switch (scheduleAsync) {
       AsyncData() => (
-          isDark ? AppColors.greenDark : AppColors.greenLight,
-          'Данные актуальны',
-          false,
-        ),
+        isDark ? AppColors.greenDark : AppColors.greenLight,
+        'Данные актуальны',
+        false,
+      ),
       AsyncLoading() => (
-          isDark ? AppColors.accentDark : AppColors.accentLight,
-          'Синхронизация...',
-          true,
-        ),
+        isDark ? AppColors.accentDark : AppColors.accentLight,
+        'Синхронизация...',
+        true,
+      ),
       AsyncError() => (
-          isDark ? AppColors.orangeDark : AppColors.orangeLight,
-          'Нет подключения · данные из кэша',
-          false,
-        ),
+        isDark ? AppColors.orangeDark : AppColors.orangeLight,
+        'Нет подключения · данные из кэша',
+        false,
+      ),
       _ => (
-          isDark ? AppColors.greenDark : AppColors.greenLight,
-          'Данные актуальны',
-          false,
-        ),
+        isDark ? AppColors.greenDark : AppColors.greenLight,
+        'Данные актуальны',
+        false,
+      ),
     };
 
-    final Color surface =
-        AppColors.resolve(context, AppColors.surfaceLight, AppColors.surfaceDark);
-    final Color label2 =
-        AppColors.resolve(context, AppColors.label2Light, AppColors.label2Dark);
-    final Color label3 =
-        AppColors.resolve(context, AppColors.label3Light, AppColors.label3Dark);
-    final Color surface3 =
-        AppColors.resolve(context, AppColors.surface3Light, AppColors.surface3Dark);
-    final Color accent =
-        AppColors.resolve(context, AppColors.accentLight, AppColors.accentDark);
+    final Color surface = AppColors.resolve(
+      context,
+      AppColors.surfaceLight,
+      AppColors.surfaceDark,
+    );
+    final Color label2 = AppColors.resolve(
+      context,
+      AppColors.label2Light,
+      AppColors.label2Dark,
+    );
+    final Color label3 = AppColors.resolve(
+      context,
+      AppColors.label3Light,
+      AppColors.label3Dark,
+    );
+    final Color surface3 = AppColors.resolve(
+      context,
+      AppColors.surface3Light,
+      AppColors.surface3Dark,
+    );
+    final Color accent = AppColors.resolve(
+      context,
+      AppColors.accentLight,
+      AppColors.accentDark,
+    );
 
-    final now = DateTime.now();
     final timeStr =
         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
@@ -156,12 +173,14 @@ class _PulsingDotState extends State<_PulsingDot>
       duration: const Duration(milliseconds: 2200),
     )..repeat(reverse: true);
 
-    _opacity = Tween<double>(begin: 1.0, end: 0.5).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
-    _scale = Tween<double>(begin: 1.0, end: 1.3).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
+    _opacity = Tween<double>(
+      begin: 1.0,
+      end: 0.5,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+    _scale = Tween<double>(
+      begin: 1.0,
+      end: 1.3,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
   }
 
   @override
@@ -222,10 +241,7 @@ class _StatusChip extends StatelessWidget {
         children: [
           Icon(icon, size: 13, color: iconColor),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: AppTextStyles.syncChip.copyWith(color: textColor),
-          ),
+          Text(label, style: AppTextStyles.syncChip.copyWith(color: textColor)),
         ],
       ),
     );

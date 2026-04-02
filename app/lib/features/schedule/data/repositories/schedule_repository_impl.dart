@@ -1,5 +1,6 @@
 import '../../domain/entities/lesson.dart';
 import '../../domain/entities/schedule_day.dart';
+import '../../domain/entities/lesson_type.dart';
 import '../../domain/repositories/schedule_repository.dart';
 
 class ScheduleRepositoryImpl implements ScheduleRepository {
@@ -34,14 +35,22 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
     return [
       _day(monday, _lessonsMonday(monday)),
-      _day(monday.add(const Duration(days: 1)),
-          _lessonsTuesday(monday.add(const Duration(days: 1)))),
-      _day(monday.add(const Duration(days: 2)),
-          _lessonsWednesday(monday.add(const Duration(days: 2)))),
-      _day(monday.add(const Duration(days: 3)),
-          _lessonsThursday(monday.add(const Duration(days: 3)))),
-      _day(monday.add(const Duration(days: 4)),
-          _lessonsFriday(monday.add(const Duration(days: 4)))),
+      _day(
+        monday.add(const Duration(days: 1)),
+        _lessonsTuesday(monday.add(const Duration(days: 1))),
+      ),
+      _day(
+        monday.add(const Duration(days: 2)),
+        _lessonsWednesday(monday.add(const Duration(days: 2))),
+      ),
+      _day(
+        monday.add(const Duration(days: 3)),
+        _lessonsThursday(monday.add(const Duration(days: 3))),
+      ),
+      _day(
+        monday.add(const Duration(days: 4)),
+        _lessonsFriday(monday.add(const Duration(days: 4))),
+      ),
     ];
   }
 
@@ -52,58 +61,58 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       DateTime(base.year, base.month, base.day, hour, minute);
 
   static List<Lesson> _lessonsMonday(DateTime d) => [
-        Lesson(
-          subject: 'Математический анализ',
-          teacher: 'Иванов А.В.',
-          room: '301',
-          type: 'ЛЕК',
-          startTime: _t(d, 8, 0),
-          endTime: _t(d, 9, 35),
-        ),
-        Lesson(
-          subject: 'Программирование',
-          teacher: 'Петрова С.И.',
-          room: 'Л-12',
-          type: 'ПР',
-          startTime: _t(d, 9, 50),
-          endTime: _t(d, 11, 25),
-        ),
-        Lesson(
-          subject: 'Физика',
-          teacher: 'Сидоров В.Н.',
-          room: '205',
-          type: 'ЛЕК',
-          startTime: _t(d, 11, 40),
-          endTime: _t(d, 13, 15),
-        ),
-      ];
+    Lesson(
+      subject: 'Математический анализ',
+      teacher: 'Иванов А.В.',
+      room: '301',
+      type: LessonType.lecture,
+      startTime: _t(d, 8, 0),
+      endTime: _t(d, 9, 35),
+    ),
+    Lesson(
+      subject: 'Программирование',
+      teacher: 'Петрова С.И.',
+      room: 'Л-12',
+      type: LessonType.practice,
+      startTime: _t(d, 9, 50),
+      endTime: _t(d, 11, 25),
+    ),
+    Lesson(
+      subject: 'Физика',
+      teacher: 'Сидоров В.Н.',
+      room: '205',
+      type: LessonType.lecture,
+      startTime: _t(d, 11, 40),
+      endTime: _t(d, 13, 15),
+    ),
+  ];
 
   static List<Lesson> _lessonsTuesday(DateTime d) => [
-        Lesson(
-          subject: 'Английский язык',
-          teacher: 'Смирнова О.Ю.',
-          room: '115',
-          type: 'ПР',
-          startTime: _t(d, 8, 0),
-          endTime: _t(d, 9, 35),
-        ),
-        Lesson(
-          subject: 'История',
-          teacher: 'Козлов Д.А.',
-          room: '320',
-          type: 'ЛЕК',
-          startTime: _t(d, 9, 50),
-          endTime: _t(d, 11, 25),
-        ),
-        Lesson(
-          subject: 'Линейная алгебра',
-          teacher: 'Иванов А.В.',
-          room: '301',
-          type: 'ПР',
-          startTime: _t(d, 11, 40),
-          endTime: _t(d, 13, 15),
-        ),
-      ];
+    Lesson(
+      subject: 'Английский язык',
+      teacher: 'Смирнова О.Ю.',
+      room: '115',
+      type: LessonType.practice,
+      startTime: _t(d, 8, 0),
+      endTime: _t(d, 9, 35),
+    ),
+    Lesson(
+      subject: 'История',
+      teacher: 'Козлов Д.А.',
+      room: '320',
+      type: LessonType.lecture,
+      startTime: _t(d, 9, 50),
+      endTime: _t(d, 11, 25),
+    ),
+    Lesson(
+      subject: 'Линейная алгебра',
+      teacher: 'Иванов А.В.',
+      room: '301',
+      type: LessonType.practice,
+      startTime: _t(d, 11, 40),
+      endTime: _t(d, 13, 15),
+    ),
+  ];
 
   static List<Lesson> _lessonsWednesday(DateTime d) {
     final now = DateTime.now();
@@ -116,7 +125,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         subject: 'Физика',
         teacher: 'Сидоров В.Н.',
         room: '205',
-        type: 'ЛАБ',
+        type: LessonType.lab,
         startTime: _t(d, 8, 0),
         endTime: _t(d, 9, 35),
       ),
@@ -124,19 +133,15 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         subject: 'Информатика',
         teacher: 'Петрова С.И.',
         room: 'Л-12',
-        type: 'ЛАБ',
-        startTime: d.weekday == now.weekday
-            ? activeStart
-            : _t(d, 9, 50),
-        endTime: d.weekday == now.weekday
-            ? activeEnd
-            : _t(d, 11, 25),
+        type: LessonType.lab,
+        startTime: d.weekday == now.weekday ? activeStart : _t(d, 9, 50),
+        endTime: d.weekday == now.weekday ? activeEnd : _t(d, 11, 25),
       ),
       Lesson(
         subject: 'Программирование',
         teacher: 'Петрова С.И.',
         room: 'Л-12',
-        type: 'ЛАБ',
+        type: LessonType.lab,
         startTime: _t(d, 11, 40),
         endTime: _t(d, 13, 15),
       ),
@@ -144,7 +149,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         subject: 'Английский язык',
         teacher: 'Смирнова О.Ю.',
         room: '115',
-        type: 'ПР',
+        type: LessonType.practice,
         startTime: _t(d, 14, 0),
         endTime: _t(d, 15, 35),
       ),
@@ -152,48 +157,48 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   static List<Lesson> _lessonsThursday(DateTime d) => [
-        Lesson(
-          subject: 'Программирование',
-          teacher: 'Петрова С.И.',
-          room: 'Л-12',
-          type: 'ЛАБ',
-          startTime: _t(d, 8, 0),
-          endTime: _t(d, 9, 35),
-        ),
-        Lesson(
-          subject: 'История',
-          teacher: 'Козлов Д.А.',
-          room: '320',
-          type: 'ПР',
-          startTime: _t(d, 9, 50),
-          endTime: _t(d, 11, 25),
-        ),
-        Lesson(
-          subject: 'Математический анализ',
-          teacher: 'Иванов А.В.',
-          room: '301',
-          type: 'ЛЕК',
-          startTime: _t(d, 11, 40),
-          endTime: _t(d, 13, 15),
-        ),
-      ];
+    Lesson(
+      subject: 'Программирование',
+      teacher: 'Петрова С.И.',
+      room: 'Л-12',
+      type: LessonType.lab,
+      startTime: _t(d, 8, 0),
+      endTime: _t(d, 9, 35),
+    ),
+    Lesson(
+      subject: 'История',
+      teacher: 'Козлов Д.А.',
+      room: '320',
+      type: LessonType.practice,
+      startTime: _t(d, 9, 50),
+      endTime: _t(d, 11, 25),
+    ),
+    Lesson(
+      subject: 'Математический анализ',
+      teacher: 'Иванов А.В.',
+      room: '301',
+      type: LessonType.lecture,
+      startTime: _t(d, 11, 40),
+      endTime: _t(d, 13, 15),
+    ),
+  ];
 
   static List<Lesson> _lessonsFriday(DateTime d) => [
-        Lesson(
-          subject: 'Физика',
-          teacher: 'Сидоров В.Н.',
-          room: '205',
-          type: 'ЛАБ',
-          startTime: _t(d, 8, 0),
-          endTime: _t(d, 9, 35),
-        ),
-        Lesson(
-          subject: 'Программирование',
-          teacher: 'Петрова С.И.',
-          room: 'Л-12',
-          type: 'ЛЕК',
-          startTime: _t(d, 9, 50),
-          endTime: _t(d, 11, 25),
-        ),
-      ];
+    Lesson(
+      subject: 'Физика',
+      teacher: 'Сидоров В.Н.',
+      room: '205',
+      type: LessonType.lab,
+      startTime: _t(d, 8, 0),
+      endTime: _t(d, 9, 35),
+    ),
+    Lesson(
+      subject: 'Программирование',
+      teacher: 'Петрова С.И.',
+      room: 'Л-12',
+      type: LessonType.lecture,
+      startTime: _t(d, 9, 50),
+      endTime: _t(d, 11, 25),
+    ),
+  ];
 }

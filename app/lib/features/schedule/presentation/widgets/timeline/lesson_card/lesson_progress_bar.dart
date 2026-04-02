@@ -12,26 +12,38 @@ class LessonProgressBar extends StatelessWidget {
     super.key,
     required this.startTime,
     required this.endTime,
+    required this.now,
   });
 
   final DateTime startTime;
   final DateTime endTime;
+  final DateTime now;
 
   @override
   Widget build(BuildContext context) {
-    final Color accent =
-        AppColors.resolve(context, AppColors.accentLight, AppColors.accentDark);
-    final Color teal =
-        AppColors.resolve(context, AppColors.tealLight, AppColors.tealDark);
-    final Color surface3 =
-        AppColors.resolve(context, AppColors.surface3Light, AppColors.surface3Dark);
-    final Color label3 =
-        AppColors.resolve(context, AppColors.label3Light, AppColors.label3Dark);
+    final Color accent = AppColors.resolve(
+      context,
+      AppColors.accentLight,
+      AppColors.accentDark,
+    );
+    final Color teal = AppColors.resolve(
+      context,
+      AppColors.tealLight,
+      AppColors.tealDark,
+    );
+    final Color surface3 = AppColors.resolve(
+      context,
+      AppColors.surface3Light,
+      AppColors.surface3Dark,
+    );
+    final Color label3 = AppColors.resolve(
+      context,
+      AppColors.label3Light,
+      AppColors.label3Dark,
+    );
 
-    final now = DateTime.now();
     final totalSec = endTime.difference(startTime).inSeconds;
-    final elapsedSec =
-        now.difference(startTime).inSeconds.clamp(0, totalSec);
+    final elapsedSec = now.difference(startTime).inSeconds.clamp(0, totalSec);
     final progress = totalSec > 0 ? elapsedSec / totalSec : 0.0;
     final elapsedMin = (elapsedSec / 60).round();
     final remainingMin = ((totalSec - elapsedSec) / 60).round();

@@ -5,6 +5,9 @@ import '../../data/repositories/schedule_repository_impl.dart';
 import '../../domain/entities/schedule_day.dart';
 import '../../domain/repositories/schedule_repository.dart';
 
+DateTime mondayOf(DateTime date) =>
+    date.subtract(Duration(days: date.weekday - 1));
+
 /// Singleton провайдер базы данных Drift.
 ///
 /// Non-autoDispose: AppDatabase живёт весь lifecycle приложения.
@@ -41,4 +44,18 @@ final scheduleProvider = StreamProvider<List<ScheduleDay>>((ref) {
 ///
 /// Initialized to today. WeekStrip writes to this provider on tap;
 /// ScheduleScreen reads it to filter the lesson list.
-final selectedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
+final selectedDayProvider = StateProvider<DateTime>((ref) {
+  final now = DateTime.now();
+  return DateTime(now.year, now.month, now.day);
+});
+
+final nowProvider = StreamProvider<DateTime>((ref) async* {
+  ref.keepAlive();
+  yield DateTime.now();
+  yield* Stream.periodic(const Duration(seconds: 30), (_) => DateTime.now());
+});
+
+final currentWeekProvider = StateProvider<DateTime>((ref) {
+  final now = DateTime.now();
+  return mondayOf(DateTime(now.year, now.month, now.day));
+});

@@ -1,4 +1,5 @@
 import '../../domain/entities/lesson.dart';
+import '../../domain/entities/lesson_type.dart';
 
 class LessonModel {
   final String subject;
@@ -29,20 +30,20 @@ class LessonModel {
   }
 
   factory LessonModel.fromEntity(Lesson e) => LessonModel(
-        subject: e.subject,
-        teacher: e.teacher,
-        room: e.room,
-        type: e.type,
-        startTime: e.startTime.toUtc(),
-        endTime: e.endTime.toUtc(),
-      );
+    subject: e.subject,
+    teacher: e.teacher,
+    room: e.room,
+    type: e.type.label,
+    startTime: e.startTime.toUtc(),
+    endTime: e.endTime.toUtc(),
+  );
 
   Lesson toEntity() => Lesson(
-        subject: subject,
-        teacher: teacher,
-        room: room,
-        type: type,
-        startTime: startTime,
-        endTime: endTime,
-      );
+    subject: subject,
+    teacher: teacher,
+    room: room,
+    type: LessonType.fromString(type),
+    startTime: startTime,
+    endTime: endTime,
+  );
 }
