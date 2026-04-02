@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../features/schedule/domain/entities/lesson_type.dart';
+
 /// iOS-style color palette for UniSched.
 ///
 /// All colors are static constants.
@@ -73,6 +75,17 @@ class AppColors {
   /// Returns [light] when the scaffold is in light mode, [dark] otherwise.
   static Color resolve(BuildContext context, Color light, Color dark) =>
       Theme.of(context).brightness == Brightness.dark ? dark : light;
+
+  /// Returns the color associated with a [LessonType] for the current theme.
+  ///
+  /// Used by calendar day-cell dots and [_TypeBadge] in the timeline.
+  static Color lessonTypeColor(BuildContext context, LessonType type) =>
+      switch (type) {
+        LessonType.lecture => resolve(context, accentLight, accentDark),
+        LessonType.practice => resolve(context, greenLight, greenDark),
+        LessonType.lab => resolve(context, orangeLight, orangeDark),
+        LessonType.other => resolve(context, label3Light, label3Dark),
+      };
 
   /// Returns the strip color for a lesson card based on the subject name.
   ///

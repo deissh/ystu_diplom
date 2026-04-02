@@ -161,28 +161,5 @@ class _TypeBadge extends StatelessWidget {
     );
   }
 
-  Color _typeColor(BuildContext ctx) {
-    return switch (type) {
-      LessonType.lecture => AppColors.resolve(
-        ctx,
-        AppColors.accentLight,
-        AppColors.accentDark,
-      ),
-      LessonType.practice => AppColors.resolve(
-        ctx,
-        AppColors.greenLight,
-        AppColors.greenDark,
-      ),
-      LessonType.lab => AppColors.resolve(
-        ctx,
-        AppColors.orangeLight,
-        AppColors.orangeDark,
-      ),
-      LessonType.other => AppColors.resolve(
-        ctx,
-        AppColors.label3Light,
-        AppColors.label3Dark,
-      ),
-    };
-  }
+  Color _typeColor(BuildContext ctx) => AppColors.lessonTypeColor(ctx, type);
 }

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/calendar/presentation/screens/calendar_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/schedule/presentation/screens/schedule_screen.dart';
 
-// Ключи навигаторов — top-level, чтобы избежать пересоздания.
-// GoRouter v14: navigatorKey обязателен для каждого StatefulShellBranch.
+// Navigator keys — top-level to avoid recreation.
+// GoRouter v14: navigatorKey is required for each StatefulShellBranch.
 final _rootNavKey = GlobalKey<NavigatorState>();
 final _scheduleNavKey = GlobalKey<NavigatorState>(debugLabel: 'schedule');
+final _calendarNavKey = GlobalKey<NavigatorState>(debugLabel: 'calendar');
 final _profileNavKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
 
 final appRouter = GoRouter(
@@ -23,6 +25,15 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/schedule',
               builder: (context, state) => const ScheduleScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          navigatorKey: _calendarNavKey,
+          routes: [
+            GoRoute(
+              path: '/calendar',
+              builder: (context, state) => const CalendarScreen(),
             ),
           ],
         ),
@@ -53,7 +64,7 @@ class _ScaffoldWithNavBar extends StatelessWidget {
         currentIndex: shell.currentIndex,
         onTap: (i) => shell.goBranch(
           i,
-          // Нажатие на активную вкладку → возврат к корню ветки
+          // Tapping the active tab navigates back to the branch root.
           initialLocation: i == shell.currentIndex,
         ),
         items: const [
@@ -62,12 +73,12 @@ class _ScaffoldWithNavBar extends StatelessWidget {
             label: 'Расписание',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Профиль',
+            icon: Icon(Icons.calendar_month),
+            label: 'Календарь',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Настройки',
+            icon: Icon(Icons.person),
+            label: 'Профиль',
           ),
         ],
       ),

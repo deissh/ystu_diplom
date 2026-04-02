@@ -1,20 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/failure.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/errors/failure.dart';
-import '../providers/schedule_provider.dart';
-import '../utils/schedule_ui_helpers.dart';
-import '../widgets/sync_status_bar.dart';
-import '../widgets/week_strip.dart';
+import '../../../schedule/presentation/providers/schedule_provider.dart';
+import '../../../schedule/presentation/utils/schedule_ui_helpers.dart';
+import '../../../schedule/presentation/widgets/sync_status_bar.dart';
+import '../providers/calendar_provider.dart';
+import '../widgets/lesson_type_legend.dart';
+import '../widgets/month_grid.dart';
 
-class ScheduleScreen extends ConsumerWidget {
-  const ScheduleScreen({super.key});
+/// Calendar tab screen.
+///
+/// Layout (top-to-bottom):
+///   [SyncStatusBar]       — conditional, shows sync errors
+///   [MonthGrid]           — fixed monthly calendar with lesson-type dots
+///   [LessonTypeLegend]    — color legend for the dots
+///   [scrollable timeline] — pars for the selected day
+class CalendarScreen extends ConsumerWidget {
+  const CalendarScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedDay = ref.watch(selectedDayProvider);
+    final selectedDay = ref.watch(calendarSelectedDayProvider);
     final scheduleAsync = ref.watch(scheduleProvider);
 
     final Color bg = AppColors.resolve(
@@ -31,9 +40,15 @@ class ScheduleScreen extends ConsumerWidget {
           children: [
             const SizedBox(height: 8),
             const SyncStatusBar(),
-            const SizedBox(height: 8),
-            const WeekStrip(),
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
+            // ── Calendar + legend (fixed) ──────────────────────────────
+            scheduleAsync.when(
+              data: (days) => MonthGrid(scheduleDays: days),
+              loading: () => const MonthGrid(scheduleDays: []),
+              error: (e, st) => const MonthGrid(scheduleDays: []),
+            ),
+            const LessonTypeLegend(),
+            // ── Timeline (scrollable) ──────────────────────────────────
             Expanded(
               child: scheduleAsync.when(
                 data: (days) {
@@ -45,11 +60,12 @@ class ScheduleScreen extends ConsumerWidget {
                     return const _FreeDayState();
                   }
                   return ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                     children: buildScheduleItems(lessons),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
                 error: (error, _) => _ErrorState(
                   error: error,
                   onRetry: () => ref.invalidate(scheduleProvider),
@@ -61,27 +77,24 @@ class ScheduleScreen extends ConsumerWidget {
       ),
     );
   }
-
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
+// ── Empty / error states ──────────────────────────────────────────────────────
 
 class _WeekendState extends StatelessWidget {
   const _WeekendState();
 
   @override
-  Widget build(BuildContext context) {
-    return _StateMessage(message: 'Выходной - отдыхай!');
-  }
+  Widget build(BuildContext context) =>
+      const _StateMessage(message: 'Выходной — отдыхай!');
 }
 
 class _FreeDayState extends StatelessWidget {
   const _FreeDayState();
 
   @override
-  Widget build(BuildContext context) {
-    return _StateMessage(message: 'Нет пар - свободный день');
-  }
+  Widget build(BuildContext context) =>
+      const _StateMessage(message: 'Нет пар — свободный день');
 }
 
 class _ErrorState extends StatelessWidget {
@@ -106,7 +119,7 @@ class _ErrorState extends StatelessWidget {
     final message = switch (error) {
       NetworkFailure() => 'Не удалось загрузить расписание: проблемы с сетью',
       ParseFailure() => 'Не удалось обработать данные расписания',
-      CacheFailure() => 'Не удалось прочитать сохраненное расписание',
+      CacheFailure() => 'Не удалось прочитать сохранённое расписание',
       _ => 'Ошибка загрузки расписания',
     };
 
