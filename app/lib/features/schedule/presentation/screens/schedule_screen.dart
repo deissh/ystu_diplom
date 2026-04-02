@@ -29,7 +29,7 @@ class ScheduleScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             const SyncStatusBar(),
             const SizedBox(height: 8),
             const WeekStrip(),
@@ -44,8 +44,10 @@ class ScheduleScreen extends ConsumerWidget {
                   if (lessons.isEmpty) {
                     return const _FreeDayState();
                   }
+                  final bottomPad = kBottomNavigationBarHeight +
+                      MediaQuery.of(context).padding.bottom;
                   return ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                    padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPad),
                     children: buildScheduleItems(lessons),
                   );
                 },

@@ -38,7 +38,7 @@ class CalendarScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             const SyncStatusBar(),
             const SizedBox(height: 4),
             // ── Calendar + legend (fixed) ──────────────────────────────
@@ -59,8 +59,10 @@ class CalendarScreen extends ConsumerWidget {
                   if (lessons.isEmpty) {
                     return const _FreeDayState();
                   }
+                  final bottomPad = kBottomNavigationBarHeight +
+                      MediaQuery.of(context).padding.bottom;
                   return ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                    padding: EdgeInsets.fromLTRB(16, 12, 16, bottomPad),
                     children: buildScheduleItems(lessons),
                   );
                 },

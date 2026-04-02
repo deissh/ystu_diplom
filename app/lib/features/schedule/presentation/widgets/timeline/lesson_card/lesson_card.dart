@@ -51,15 +51,7 @@ class LessonCard extends ConsumerWidget {
         decoration: BoxDecoration(
           color: surface,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: isDark
-              ? []
-              : [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 3,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
+          boxShadow: AppColors.cardShadow(isDark),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),

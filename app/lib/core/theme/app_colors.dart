@@ -76,6 +76,23 @@ class AppColors {
   static Color resolve(BuildContext context, Color light, Color dark) =>
       Theme.of(context).brightness == Brightness.dark ? dark : light;
 
+  /// Standard iOS-style card shadow token.
+  ///
+  /// Returns a subtle, diffuse shadow in light mode and an empty list in dark
+  /// mode (dark surfaces use elevation rather than shadows on iOS).
+  ///
+  /// Usage: `boxShadow: AppColors.cardShadow(isDark)`
+  static List<BoxShadow> cardShadow(bool isDark) => isDark
+      ? const []
+      : const [
+          BoxShadow(
+            // black at ~6% opacity: 0x0F / 255 ≈ 0.059
+            color: Color(0x0F000000),
+            blurRadius: 6,
+            offset: Offset(0, 1),
+          ),
+        ];
+
   /// Returns the color associated with a [LessonType] for the current theme.
   ///
   /// Used by calendar day-cell dots and [_TypeBadge] in the timeline.

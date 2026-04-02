@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/theme/app_colors.dart';
 import '../features/calendar/presentation/screens/calendar_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/schedule/presentation/screens/schedule_screen.dart';
@@ -59,28 +62,95 @@ class _ScaffoldWithNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // extendBody: true lets the body render behind the bottom bar so
+      // BackdropFilter in _IosTabBar can see and blur the content below.
+      extendBody: true,
       body: shell,
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: _IosTabBar(
         currentIndex: shell.currentIndex,
         onTap: (i) => shell.goBranch(
           i,
-          // Tapping the active tab navigates back to the branch root.
           initialLocation: i == shell.currentIndex,
         ),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Расписание',
+      ),
+    );
+  }
+}
+
+/// iOS-style frosted-glass tab bar.
+///
+/// Uses [BackdropFilter] with [extendBody] on the parent [Scaffold] to achieve
+/// a translucent blur effect. The bar is composed of:
+///   - A hairline top separator (0.5 dp)
+///   - A [BackdropFilter] blur layer (sigma 20)
+///   - A semi-transparent surface container (85% opacity)
+///   - A standard [BottomNavigationBar] with no elevation and iOS colours
+class _IosTabBar extends StatelessWidget {
+  const _IosTabBar({required this.currentIndex, required this.onTap});
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final Color surface = AppColors.resolve(
+      context,
+      AppColors.surfaceLight,
+      AppColors.surfaceDark,
+    );
+    final Color separator = AppColors.resolve(
+      context,
+      AppColors.separatorLight,
+      AppColors.separatorDark,
+    );
+    final Color accent = AppColors.resolve(
+      context,
+      AppColors.accentLight,
+      AppColors.accentDark,
+    );
+
+    // Semi-transparent surface: 85% in light, 90% in dark (dark needs less blur)
+    final Color barBg = surface.withValues(alpha: isDark ? 0.9 : 0.85);
+
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          color: barBg,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Hairline top separator — mimics iOS tab bar border
+              Container(height: 0.5, color: separator),
+              BottomNavigationBar(
+                currentIndex: currentIndex,
+                onTap: onTap,
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                selectedItemColor: accent,
+                unselectedItemColor: AppColors.iconInactive,
+                // Remove default selected item indicator animation
+                type: BottomNavigationBarType.fixed,
+                items: const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.calendar_today),
+                    label: 'Расписание',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.calendar_month),
+                    label: 'Календарь',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.person),
+                    label: 'Профиль',
+                  ),
+                ],
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month),
-            label: 'Календарь',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Профиль',
-          ),
-        ],
+        ),
       ),
     );
   }
