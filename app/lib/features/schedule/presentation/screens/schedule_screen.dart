@@ -37,6 +37,10 @@ class ScheduleScreen extends ConsumerWidget {
             Expanded(
               child: scheduleAsync.when(
                 data: (days) {
+                  final groupId = ref.read(selectedGroupIdProvider);
+                  if (groupId.isEmpty) {
+                    return const _NoGroupState();
+                  }
                   if (selectedDay.weekday > DateTime.friday) {
                     return const _WeekendState();
                   }
@@ -67,6 +71,15 @@ class ScheduleScreen extends ConsumerWidget {
 }
 
 // ── Empty state ───────────────────────────────────────────────────────────────
+
+class _NoGroupState extends StatelessWidget {
+  const _NoGroupState();
+
+  @override
+  Widget build(BuildContext context) {
+    return _StateMessage(message: 'Выберите группу в Настройках');
+  }
+}
 
 class _WeekendState extends StatelessWidget {
   const _WeekendState();

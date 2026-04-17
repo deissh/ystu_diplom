@@ -27,6 +27,7 @@ class TimelineItem extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: TimelineItem(
         lesson: Lesson(
+          groupId: '',
           subject: 'Математический анализ',
           teacher: 'Иванов А.В.',
           room: '301',

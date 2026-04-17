@@ -1,49 +1,101 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/network/dio_client.dart';
 import '../../data/datasources/local/drift_database.dart';
+import '../../data/datasources/local/groups_dao.dart';
+import '../../data/datasources/local/schedule_dao.dart';
+import '../../data/datasources/local/teachers_dao.dart';
+import '../../data/datasources/remote/api_client.dart';
+import '../../data/datasources/remote/parser.dart';
+import '../../data/repositories/groups_repository_impl.dart';
 import '../../data/repositories/schedule_repository_impl.dart';
+import '../../data/repositories/teachers_repository_impl.dart';
 import '../../domain/entities/schedule_day.dart';
+import '../../domain/repositories/groups_repository.dart';
 import '../../domain/repositories/schedule_repository.dart';
+import '../../domain/repositories/teachers_repository.dart';
 
 DateTime mondayOf(DateTime date) =>
     date.subtract(Duration(days: date.weekday - 1));
 
+// ── Инфраструктурные провайдеры ───────────────────────────────────────────────
+
 /// Singleton провайдер базы данных Drift.
 ///
 /// Non-autoDispose: AppDatabase живёт весь lifecycle приложения.
-/// ref.onDispose(db.close) — корректно закрывает SQLite-соединение
-/// при диспозе ProviderScope (выход из приложения / teardown тестов).
 final databaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase();
   ref.onDispose(db.close);
   return db;
 });
 
-/// Провайдер репозитория расписания.
-final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
-  return const ScheduleRepositoryImpl();
+final scheduleDaoProvider = Provider<ScheduleDao>((ref) {
+  return ref.watch(databaseProvider).scheduleDao;
 });
 
-/// Реактивный стрим расписания.
+final groupsDaoProvider = Provider<GroupsDao>((ref) {
+  return ref.watch(databaseProvider).groupsDao;
+});
+
+final teachersDaoProvider = Provider<TeachersDao>((ref) {
+  return ref.watch(databaseProvider).teachersDao;
+});
+
+final apiClientProvider = Provider<ApiClient>((ref) {
+  return ApiClient(ref.watch(dioProvider));
+});
+
+final parserProvider = Provider<ScheduleParser>((_) => const ScheduleParser());
+
+// ── Репозитории ───────────────────────────────────────────────────────────────
+
+final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
+  return ScheduleRepositoryImpl(
+    ref.watch(scheduleDaoProvider),
+    ref.watch(apiClientProvider),
+    ref.watch(parserProvider),
+  );
+});
+
+final groupsRepositoryProvider = Provider<GroupsRepository>((ref) {
+  return GroupsRepositoryImpl(
+    ref.watch(groupsDaoProvider),
+    ref.watch(apiClientProvider),
+    ref.watch(parserProvider),
+  );
+});
+
+final teachersRepositoryProvider = Provider<TeachersRepository>((ref) {
+  return TeachersRepositoryImpl(
+    ref.watch(teachersDaoProvider),
+    ref.watch(apiClientProvider),
+    ref.watch(parserProvider),
+  );
+});
+
+// ── Провайдеры состояния ──────────────────────────────────────────────────────
+
+/// Выбранная группа. Инициализируется 'ЦИС-47' для демо.
 ///
-/// ref.keepAlive() — стрим не диспозируется при уходе пользователя
-/// с экрана расписания, избегая мигания загрузки при возврате.
+/// TODO: читать/писать из SharedPreferences когда будет экран настроек.
+final selectedGroupIdProvider = StateProvider<String>((ref) => 'ЦИС-47');
+
+/// Реактивный стрим расписания для выбранной группы.
 ///
-/// TODO: параметризовать groupId/from/to через profileProvider.
+/// ref.keepAlive() — стрим не диспозируется при уходе с экрана расписания,
+/// избегая мигания загрузки при возврате.
 final scheduleProvider = StreamProvider<List<ScheduleDay>>((ref) {
   ref.keepAlive();
   final repo = ref.watch(scheduleRepositoryProvider);
+  final groupId = ref.watch(selectedGroupIdProvider);
   return repo.watchSchedule(
-    groupId: '',
+    groupId: groupId,
     from: DateTime.utc(2020),
     to: DateTime.utc(2030),
   );
 });
 
 /// Currently selected day in the WeekStrip.
-///
-/// Initialized to today. WeekStrip writes to this provider on tap;
-/// ScheduleScreen reads it to filter the lesson list.
 final selectedDayProvider = StateProvider<DateTime>((ref) {
   final now = DateTime.now();
   return DateTime(now.year, now.month, now.day);

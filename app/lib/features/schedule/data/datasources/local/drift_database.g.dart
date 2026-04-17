@@ -468,16 +468,428 @@ class LessonsTableCompanion extends UpdateCompanion<LessonsTableData> {
   }
 }
 
+class $GroupsTable extends Groups with TableInfo<$GroupsTable, GroupData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GroupsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _instituteNameMeta = const VerificationMeta(
+    'instituteName',
+  );
+  @override
+  late final GeneratedColumn<String> instituteName = GeneratedColumn<String>(
+    'institute_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _groupNameMeta = const VerificationMeta(
+    'groupName',
+  );
+  @override
+  late final GeneratedColumn<String> groupName = GeneratedColumn<String>(
+    'group_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [instituteName, groupName];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'groups';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GroupData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('institute_name')) {
+      context.handle(
+        _instituteNameMeta,
+        instituteName.isAcceptableOrUnknown(
+          data['institute_name']!,
+          _instituteNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_instituteNameMeta);
+    }
+    if (data.containsKey('group_name')) {
+      context.handle(
+        _groupNameMeta,
+        groupName.isAcceptableOrUnknown(data['group_name']!, _groupNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_groupNameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {instituteName, groupName};
+  @override
+  GroupData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GroupData(
+      instituteName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}institute_name'],
+      )!,
+      groupName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_name'],
+      )!,
+    );
+  }
+
+  @override
+  $GroupsTable createAlias(String alias) {
+    return $GroupsTable(attachedDatabase, alias);
+  }
+}
+
+class GroupData extends DataClass implements Insertable<GroupData> {
+  final String instituteName;
+  final String groupName;
+  const GroupData({required this.instituteName, required this.groupName});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['institute_name'] = Variable<String>(instituteName);
+    map['group_name'] = Variable<String>(groupName);
+    return map;
+  }
+
+  GroupsCompanion toCompanion(bool nullToAbsent) {
+    return GroupsCompanion(
+      instituteName: Value(instituteName),
+      groupName: Value(groupName),
+    );
+  }
+
+  factory GroupData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GroupData(
+      instituteName: serializer.fromJson<String>(json['instituteName']),
+      groupName: serializer.fromJson<String>(json['groupName']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'instituteName': serializer.toJson<String>(instituteName),
+      'groupName': serializer.toJson<String>(groupName),
+    };
+  }
+
+  GroupData copyWith({String? instituteName, String? groupName}) => GroupData(
+    instituteName: instituteName ?? this.instituteName,
+    groupName: groupName ?? this.groupName,
+  );
+  GroupData copyWithCompanion(GroupsCompanion data) {
+    return GroupData(
+      instituteName: data.instituteName.present
+          ? data.instituteName.value
+          : this.instituteName,
+      groupName: data.groupName.present ? data.groupName.value : this.groupName,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GroupData(')
+          ..write('instituteName: $instituteName, ')
+          ..write('groupName: $groupName')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(instituteName, groupName);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GroupData &&
+          other.instituteName == this.instituteName &&
+          other.groupName == this.groupName);
+}
+
+class GroupsCompanion extends UpdateCompanion<GroupData> {
+  final Value<String> instituteName;
+  final Value<String> groupName;
+  final Value<int> rowid;
+  const GroupsCompanion({
+    this.instituteName = const Value.absent(),
+    this.groupName = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GroupsCompanion.insert({
+    required String instituteName,
+    required String groupName,
+    this.rowid = const Value.absent(),
+  }) : instituteName = Value(instituteName),
+       groupName = Value(groupName);
+  static Insertable<GroupData> custom({
+    Expression<String>? instituteName,
+    Expression<String>? groupName,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (instituteName != null) 'institute_name': instituteName,
+      if (groupName != null) 'group_name': groupName,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GroupsCompanion copyWith({
+    Value<String>? instituteName,
+    Value<String>? groupName,
+    Value<int>? rowid,
+  }) {
+    return GroupsCompanion(
+      instituteName: instituteName ?? this.instituteName,
+      groupName: groupName ?? this.groupName,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (instituteName.present) {
+      map['institute_name'] = Variable<String>(instituteName.value);
+    }
+    if (groupName.present) {
+      map['group_name'] = Variable<String>(groupName.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GroupsCompanion(')
+          ..write('instituteName: $instituteName, ')
+          ..write('groupName: $groupName, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TeachersTable extends Teachers
+    with TableInfo<$TeachersTable, TeacherData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TeachersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'teachers';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TeacherData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TeacherData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TeacherData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+    );
+  }
+
+  @override
+  $TeachersTable createAlias(String alias) {
+    return $TeachersTable(attachedDatabase, alias);
+  }
+}
+
+class TeacherData extends DataClass implements Insertable<TeacherData> {
+  final int id;
+  final String name;
+  const TeacherData({required this.id, required this.name});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    return map;
+  }
+
+  TeachersCompanion toCompanion(bool nullToAbsent) {
+    return TeachersCompanion(id: Value(id), name: Value(name));
+  }
+
+  factory TeacherData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TeacherData(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+    };
+  }
+
+  TeacherData copyWith({int? id, String? name}) =>
+      TeacherData(id: id ?? this.id, name: name ?? this.name);
+  TeacherData copyWithCompanion(TeachersCompanion data) {
+    return TeacherData(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TeacherData(')
+          ..write('id: $id, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TeacherData && other.id == this.id && other.name == this.name);
+}
+
+class TeachersCompanion extends UpdateCompanion<TeacherData> {
+  final Value<int> id;
+  final Value<String> name;
+  const TeachersCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+  });
+  TeachersCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+  }) : name = Value(name);
+  static Insertable<TeacherData> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+    });
+  }
+
+  TeachersCompanion copyWith({Value<int>? id, Value<String>? name}) {
+    return TeachersCompanion(id: id ?? this.id, name: name ?? this.name);
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TeachersCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $LessonsTableTable lessonsTable = $LessonsTableTable(this);
+  late final $GroupsTable groups = $GroupsTable(this);
+  late final $TeachersTable teachers = $TeachersTable(this);
   late final ScheduleDao scheduleDao = ScheduleDao(this as AppDatabase);
+  late final GroupsDao groupsDao = GroupsDao(this as AppDatabase);
+  late final TeachersDao teachersDao = TeachersDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [lessonsTable];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    lessonsTable,
+    groups,
+    teachers,
+  ];
 }
 
 typedef $$LessonsTableTableCreateCompanionBuilder =
@@ -718,10 +1130,273 @@ typedef $$LessonsTableTableProcessedTableManager =
       LessonsTableData,
       PrefetchHooks Function()
     >;
+typedef $$GroupsTableCreateCompanionBuilder =
+    GroupsCompanion Function({
+      required String instituteName,
+      required String groupName,
+      Value<int> rowid,
+    });
+typedef $$GroupsTableUpdateCompanionBuilder =
+    GroupsCompanion Function({
+      Value<String> instituteName,
+      Value<String> groupName,
+      Value<int> rowid,
+    });
+
+class $$GroupsTableFilterComposer
+    extends Composer<_$AppDatabase, $GroupsTable> {
+  $$GroupsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get instituteName => $composableBuilder(
+    column: $table.instituteName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get groupName => $composableBuilder(
+    column: $table.groupName,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GroupsTableOrderingComposer
+    extends Composer<_$AppDatabase, $GroupsTable> {
+  $$GroupsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get instituteName => $composableBuilder(
+    column: $table.instituteName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get groupName => $composableBuilder(
+    column: $table.groupName,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GroupsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GroupsTable> {
+  $$GroupsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get instituteName => $composableBuilder(
+    column: $table.instituteName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get groupName =>
+      $composableBuilder(column: $table.groupName, builder: (column) => column);
+}
+
+class $$GroupsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GroupsTable,
+          GroupData,
+          $$GroupsTableFilterComposer,
+          $$GroupsTableOrderingComposer,
+          $$GroupsTableAnnotationComposer,
+          $$GroupsTableCreateCompanionBuilder,
+          $$GroupsTableUpdateCompanionBuilder,
+          (GroupData, BaseReferences<_$AppDatabase, $GroupsTable, GroupData>),
+          GroupData,
+          PrefetchHooks Function()
+        > {
+  $$GroupsTableTableManager(_$AppDatabase db, $GroupsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GroupsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GroupsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GroupsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> instituteName = const Value.absent(),
+                Value<String> groupName = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GroupsCompanion(
+                instituteName: instituteName,
+                groupName: groupName,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String instituteName,
+                required String groupName,
+                Value<int> rowid = const Value.absent(),
+              }) => GroupsCompanion.insert(
+                instituteName: instituteName,
+                groupName: groupName,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GroupsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GroupsTable,
+      GroupData,
+      $$GroupsTableFilterComposer,
+      $$GroupsTableOrderingComposer,
+      $$GroupsTableAnnotationComposer,
+      $$GroupsTableCreateCompanionBuilder,
+      $$GroupsTableUpdateCompanionBuilder,
+      (GroupData, BaseReferences<_$AppDatabase, $GroupsTable, GroupData>),
+      GroupData,
+      PrefetchHooks Function()
+    >;
+typedef $$TeachersTableCreateCompanionBuilder =
+    TeachersCompanion Function({Value<int> id, required String name});
+typedef $$TeachersTableUpdateCompanionBuilder =
+    TeachersCompanion Function({Value<int> id, Value<String> name});
+
+class $$TeachersTableFilterComposer
+    extends Composer<_$AppDatabase, $TeachersTable> {
+  $$TeachersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TeachersTableOrderingComposer
+    extends Composer<_$AppDatabase, $TeachersTable> {
+  $$TeachersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TeachersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TeachersTable> {
+  $$TeachersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+}
+
+class $$TeachersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TeachersTable,
+          TeacherData,
+          $$TeachersTableFilterComposer,
+          $$TeachersTableOrderingComposer,
+          $$TeachersTableAnnotationComposer,
+          $$TeachersTableCreateCompanionBuilder,
+          $$TeachersTableUpdateCompanionBuilder,
+          (
+            TeacherData,
+            BaseReferences<_$AppDatabase, $TeachersTable, TeacherData>,
+          ),
+          TeacherData,
+          PrefetchHooks Function()
+        > {
+  $$TeachersTableTableManager(_$AppDatabase db, $TeachersTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TeachersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TeachersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TeachersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+              }) => TeachersCompanion(id: id, name: name),
+          createCompanionCallback:
+              ({Value<int> id = const Value.absent(), required String name}) =>
+                  TeachersCompanion.insert(id: id, name: name),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TeachersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TeachersTable,
+      TeacherData,
+      $$TeachersTableFilterComposer,
+      $$TeachersTableOrderingComposer,
+      $$TeachersTableAnnotationComposer,
+      $$TeachersTableCreateCompanionBuilder,
+      $$TeachersTableUpdateCompanionBuilder,
+      (TeacherData, BaseReferences<_$AppDatabase, $TeachersTable, TeacherData>),
+      TeacherData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
   $$LessonsTableTableTableManager get lessonsTable =>
       $$LessonsTableTableTableManager(_db, _db.lessonsTable);
+  $$GroupsTableTableManager get groups =>
+      $$GroupsTableTableManager(_db, _db.groups);
+  $$TeachersTableTableManager get teachers =>
+      $$TeachersTableTableManager(_db, _db.teachers);
 }
