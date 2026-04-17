@@ -11,6 +11,7 @@ import '../../data/repositories/groups_repository_impl.dart';
 import '../../data/repositories/schedule_repository_impl.dart';
 import '../../data/repositories/teachers_repository_impl.dart';
 import '../../domain/entities/schedule_day.dart';
+import '../../domain/entities/selected_subject.dart';
 import '../../domain/repositories/groups_repository.dart';
 import '../../domain/repositories/schedule_repository.dart';
 import '../../domain/repositories/teachers_repository.dart';
@@ -75,21 +76,23 @@ final teachersRepositoryProvider = Provider<TeachersRepository>((ref) {
 
 // ── Провайдеры состояния ──────────────────────────────────────────────────────
 
-/// Выбранная группа. Инициализируется 'ЦИС-47' для демо.
+/// Выбранный субъект расписания (группа или преподаватель).
 ///
-/// TODO: читать/писать из SharedPreferences когда будет экран настроек.
-final selectedGroupIdProvider = StateProvider<String>((ref) => 'ЦИС-47');
+/// null — онбординг ещё не пройден.
+/// Инициализируется из профиля в AppStartupNotifier после загрузки.
+final selectedSubjectProvider = StateProvider<SelectedSubject?>((ref) => null);
 
-/// Реактивный стрим расписания для выбранной группы.
+/// Реактивный стрим расписания для выбранного субъекта.
 ///
 /// ref.keepAlive() — стрим не диспозируется при уходе с экрана расписания,
 /// избегая мигания загрузки при возврате.
 final scheduleProvider = StreamProvider<List<ScheduleDay>>((ref) {
   ref.keepAlive();
+  final subject = ref.watch(selectedSubjectProvider);
+  if (subject == null) return Stream.value([]);
   final repo = ref.watch(scheduleRepositoryProvider);
-  final groupId = ref.watch(selectedGroupIdProvider);
   return repo.watchSchedule(
-    groupId: groupId,
+    subject: subject,
     from: DateTime.utc(2020),
     to: DateTime.utc(2030),
   );

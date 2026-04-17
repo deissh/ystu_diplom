@@ -1,13 +1,23 @@
+enum ProfileMode { student, teacher }
+
 class Profile {
-  final String id;
-  final String name;
-  final String groupId;
-  final String groupName;
+  final ProfileMode mode;
+
+  // Student fields
+  final String? groupName;
+  final int? subgroup;
+  final String? displayName;
+
+  // Teacher fields
+  final int? teacherId;
+  final String? teacherName;
 
   const Profile({
-    required this.id,
-    required this.name,
-    required this.groupId,
-    required this.groupName,
+    required this.mode,
+    this.groupName,
+    this.subgroup,
+    this.displayName,
+    this.teacherId,
+    this.teacherName,
   });
 }

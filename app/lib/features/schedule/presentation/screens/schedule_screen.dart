@@ -37,8 +37,8 @@ class ScheduleScreen extends ConsumerWidget {
             Expanded(
               child: scheduleAsync.when(
                 data: (days) {
-                  final groupId = ref.read(selectedGroupIdProvider);
-                  if (groupId.isEmpty) {
+                  final subject = ref.read(selectedSubjectProvider);
+                  if (subject == null) {
                     return const _NoGroupState();
                   }
                   if (selectedDay.weekday > DateTime.friday) {

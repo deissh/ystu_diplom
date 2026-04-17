@@ -9,6 +9,7 @@ import '../../data/datasources/remote/parser.dart';
 import '../../domain/entities/lesson.dart';
 import '../../domain/entities/lesson_type.dart';
 import '../../domain/entities/schedule_day.dart';
+import '../../domain/entities/selected_subject.dart';
 import '../../domain/repositories/schedule_repository.dart';
 
 class ScheduleRepositoryImpl implements ScheduleRepository {
@@ -19,39 +20,42 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   final ScheduleParser _parser;
 
   @override
-  Future<List<ScheduleDay>> getSchedule({
-    required String groupId,
-    required DateTime from,
-    required DateTime to,
-  }) async {
-    if (groupId.isEmpty) return [];
-    final rows = await _dao.getLessons(groupId: groupId, from: from, to: to);
-    unawaited(_sync(groupId));
-    return _toScheduleDays(rows);
-  }
-
-  @override
   Stream<List<ScheduleDay>> watchSchedule({
-    required String groupId,
+    required SelectedSubject subject,
     required DateTime from,
     required DateTime to,
   }) {
-    if (groupId.isEmpty) return Stream.value([]);
-    unawaited(_sync(groupId));
+    final subjectId = _subjectId(subject);
+    unawaited(_sync(subject));
     return _dao
-        .watchLessons(groupId: groupId, from: from, to: to)
+        .watchLessons(groupId: subjectId, from: from, to: to)
         .map(_toScheduleDays);
   }
 
-  /// Фоновая синхронизация: получает расписание из API и сохраняет в Drift.
+  /// Уникальный строковый ключ субъекта для хранения в Drift.
   ///
-  /// Ошибки только логируются — они не прерывают Drift-стрим.
-  Future<void> _sync(String groupId) async {
+  /// Группа: имя группы ('ЦИС-47').
+  /// Преподаватель: строка-ID вида '42' (parser использует тот же ключ).
+  String _subjectId(SelectedSubject subject) => switch (subject) {
+        GroupSubject(groupName: final g) => g,
+        TeacherSubject(teacherId: final id) => id.toString(),
+      };
+
+  Future<void> _sync(SelectedSubject subject) async {
     try {
-      final json = await _apiClient.fetchGroupSchedule(groupId);
-      final dayModels = _parser.parseGroupSchedule(json, groupId);
-      final lessons = dayModels.expand((d) => d.lessons).toList();
-      await _dao.insertLessons(lessons);
+      switch (subject) {
+        case GroupSubject(groupName: final g):
+          final json = await _apiClient.fetchGroupSchedule(g);
+          final dayModels = _parser.parseGroupSchedule(json, g);
+          final lessons = dayModels.expand((d) => d.lessons).toList();
+          await _dao.insertLessons(lessons);
+        case TeacherSubject(teacherId: final id):
+          final json = await _apiClient.fetchTeacherSchedule(id);
+          // parseTeacherSchedule использует id.toString() как groupId — тот же ключ.
+          final dayModels = _parser.parseTeacherSchedule(json);
+          final lessons = dayModels.expand((d) => d.lessons).toList();
+          await _dao.insertLessons(lessons);
+      }
     } on NetworkException catch (e) {
       AppLogger.warning('Schedule sync failed (network): ${e.message}');
     } on ParseException catch (e) {

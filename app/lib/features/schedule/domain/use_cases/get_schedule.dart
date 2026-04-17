@@ -1,4 +1,5 @@
 import '../entities/schedule_day.dart';
+import '../entities/selected_subject.dart';
 import '../repositories/schedule_repository.dart';
 
 class GetSchedule {
@@ -6,11 +7,11 @@ class GetSchedule {
 
   const GetSchedule(this._repository);
 
-  Future<List<ScheduleDay>> call({
-    required String groupId,
+  Stream<List<ScheduleDay>> call({
+    required SelectedSubject subject,
     required DateTime from,
     required DateTime to,
   }) {
-    return _repository.getSchedule(groupId: groupId, from: from, to: to);
+    return _repository.watchSchedule(subject: subject, from: from, to: to);
   }
 }

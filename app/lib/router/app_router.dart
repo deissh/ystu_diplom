@@ -1,12 +1,15 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/theme/app_colors.dart';
 import '../features/calendar/presentation/screens/calendar_screen.dart';
+import '../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/schedule/presentation/screens/schedule_screen.dart';
+import 'router_notifier.dart';
 
 // Navigator keys — top-level to avoid recreation.
 // GoRouter v14: navigatorKey is required for each StatefulShellBranch.
@@ -15,44 +18,67 @@ final _scheduleNavKey = GlobalKey<NavigatorState>(debugLabel: 'schedule');
 final _calendarNavKey = GlobalKey<NavigatorState>(debugLabel: 'calendar');
 final _profileNavKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
 
-final appRouter = GoRouter(
-  navigatorKey: _rootNavKey,
-  initialLocation: '/schedule',
-  routes: [
-    StatefulShellRoute.indexedStack(
-      builder: (context, state, shell) => _ScaffoldWithNavBar(shell: shell),
-      branches: [
-        StatefulShellBranch(
-          navigatorKey: _scheduleNavKey,
-          routes: [
-            GoRoute(
-              path: '/schedule',
-              builder: (context, state) => const ScheduleScreen(),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          navigatorKey: _calendarNavKey,
-          routes: [
-            GoRoute(
-              path: '/calendar',
-              builder: (context, state) => const CalendarScreen(),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          navigatorKey: _profileNavKey,
-          routes: [
-            GoRoute(
-              path: '/profile',
-              builder: (context, state) => const ProfileScreen(),
-            ),
-          ],
-        ),
-      ],
-    ),
-  ],
-);
+/// GoRouter провайдер с redirect guard для онбординга.
+///
+/// Использует [RouterNotifier] как [refreshListenable] — GoRouter
+/// повторно вычисляет redirect при каждом изменении startup state.
+final appRouterProvider = Provider<GoRouter>((ref) {
+  final notifier = ref.watch(routerNotifierProvider);
+
+  final router = GoRouter(
+    navigatorKey: _rootNavKey,
+    initialLocation: '/schedule',
+    refreshListenable: notifier,
+    redirect: (context, state) {
+      final done = notifier.onboardingComplete;
+      final onOnboarding = state.matchedLocation == '/onboarding';
+      if (!done && !onOnboarding) return '/onboarding';
+      if (done && onOnboarding) return '/schedule';
+      return null;
+    },
+    routes: [
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, shell) => _ScaffoldWithNavBar(shell: shell),
+        branches: [
+          StatefulShellBranch(
+            navigatorKey: _scheduleNavKey,
+            routes: [
+              GoRoute(
+                path: '/schedule',
+                builder: (context, state) => const ScheduleScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _calendarNavKey,
+            routes: [
+              GoRoute(
+                path: '/calendar',
+                builder: (context, state) => const CalendarScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _profileNavKey,
+            routes: [
+              GoRoute(
+                path: '/profile',
+                builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  );
+
+  ref.onDispose(router.dispose);
+  return router;
+});
 
 class _ScaffoldWithNavBar extends StatelessWidget {
   final StatefulNavigationShell shell;

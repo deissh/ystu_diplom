@@ -1,4 +1,5 @@
 import '../../../../core/errors/app_exception.dart';
+import '../../../../core/errors/failure.dart';
 import '../../../../core/logger.dart';
 import '../../data/datasources/local/teachers_dao.dart';
 import '../../data/datasources/remote/api_client.dart';
@@ -20,6 +21,22 @@ class TeachersRepositoryImpl implements TeachersRepository {
     return cached
         .map((row) => TeacherModel(id: row.id, name: row.name))
         .toList();
+  }
+
+  @override
+  Future<Failure?> refreshTeachers() async {
+    try {
+      final json = await _apiClient.fetchTeachers();
+      final teacherModels = _parser.parseTeachers(json);
+      await _dao.upsertTeachers(teacherModels);
+      return null;
+    } on NetworkException catch (e) {
+      AppLogger.warning('Teachers refresh failed (network): ${e.message}');
+      return NetworkFailure(e.message);
+    } on ParseException catch (e) {
+      AppLogger.error('Teachers refresh failed (parse): ${e.message}');
+      return ParseFailure(e.message);
+    }
   }
 
   Future<void> _sync() async {

@@ -47,6 +47,9 @@ dependencies:
   # Navigation
   go_router: ^14.6.0
 
+  # Local key-value storage
+  shared_preferences: ^2.3.4
+
   # Calendar widget
   table_calendar: ^3.1.0
   intl: ^0.20.0
