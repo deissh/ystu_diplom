@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show DraggableScrollableSheet, showModalBottomSheet;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/layout/app_layout.dart';
 import '../../../../core/logger.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -24,18 +26,19 @@ class ProfileScreen extends ConsumerWidget {
     final Color label =
         AppColors.resolve(context, AppColors.labelLight, AppColors.labelDark);
 
-    return Scaffold(
+    return CupertinoPageScaffold(
       backgroundColor: bg,
-      body: SafeArea(
-        child: profileAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(
-              child: Text('Ошибка загрузки профиля',
-                  style: AppTextStyles.meta.copyWith(color: label))),
-          data: (profile) => profile == null
-              ? _NoProfileView(label: label)
-              : _ProfileView(profile: profile),
+      child: profileAsync.when(
+        loading: () => const Center(child: CupertinoActivityIndicator()),
+        error: (e, _) => Center(
+          child: Text(
+            'Ошибка загрузки профиля',
+            style: AppTextStyles.meta.copyWith(color: label),
+          ),
         ),
+        data: (profile) => profile == null
+            ? _NoProfileView(label: label)
+            : _ProfileView(profile: profile),
       ),
     );
   }
@@ -101,70 +104,80 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
     final profileAsync = ref.watch(profileNotifierProvider);
     final isSaving = profileAsync.isLoading;
 
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          backgroundColor: bg,
-          floating: true,
-          title: Text('Профиль',
-              style: AppTextStyles.screenTitle.copyWith(color: label)),
-          actions: [
-            if (!_editMode)
-              TextButton(
-                onPressed: () => setState(() => _editMode = true),
-                child: Text('Изменить',
-                    style: AppTextStyles.meta.copyWith(color: accent)),
-              )
-            else ...[
-              TextButton(
-                onPressed: isSaving
-                    ? null
-                    : () => setState(() {
-                          _editMode = false;
-                          _editProfile = widget.profile;
-                        }),
-                child: Text('Отмена',
-                    style: AppTextStyles.meta.copyWith(color: label3)),
-              ),
-              TextButton(
-                onPressed: isSaving
-                    ? null
-                    : () async {
-                        await ref
-                            .read(profileNotifierProvider.notifier)
-                            .save(_editProfile);
-                        if (mounted) setState(() => _editMode = false);
-                      },
-                child: isSaving
-                    ? SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: accent))
-                    : Text('Сохранить',
-                        style: AppTextStyles.meta.copyWith(color: accent)),
-              ),
-            ],
-          ],
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              _buildModeSection(context, label, label3, surface, accent),
-              const SizedBox(height: 16),
-              if (_editProfile.mode == ProfileMode.student)
-                _buildStudentSection(context, label, label3, surface, accent)
-              else
-                _buildTeacherSection(context, label, label3, surface, accent),
-              const SizedBox(height: 32),
-              _buildThemeSection(context, label, label3, surface),
-              const SizedBox(height: 16),
-              _buildDataSection(context, label3, surface),
-            ]),
+    final hPad = AppLayout.hPad(context);
+    final bottomPad = _kTabBarHeight + MediaQuery.of(context).padding.bottom;
+
+    return ColoredBox(
+      color: bg,
+      child: CustomScrollView(
+        slivers: [
+          CupertinoSliverNavigationBar(
+            largeTitle: const Text('Профиль'),
+            trailing: _editMode
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: isSaving
+                            ? null
+                            : () => setState(() {
+                                  _editMode = false;
+                                  _editProfile = widget.profile;
+                                }),
+                        child: Text(
+                          'Отмена',
+                          style: AppTextStyles.meta.copyWith(color: label3),
+                        ),
+                      ),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: isSaving
+                            ? null
+                            : () async {
+                                await ref
+                                    .read(profileNotifierProvider.notifier)
+                                    .save(_editProfile);
+                                if (mounted) setState(() => _editMode = false);
+                              },
+                        child: isSaving
+                            ? const CupertinoActivityIndicator()
+                            : Text(
+                                'Сохранить',
+                                style:
+                                    AppTextStyles.meta.copyWith(color: accent),
+                              ),
+                      ),
+                    ],
+                  )
+                : CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => setState(() => _editMode = true),
+                    child: Text(
+                      'Изменить',
+                      style: AppTextStyles.meta.copyWith(color: accent),
+                    ),
+                  ),
           ),
-        ),
-      ],
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(hPad, 8, hPad, bottomPad + 32),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _buildModeSection(context, label, label3, surface, accent),
+                const SizedBox(height: 16),
+                if (_editProfile.mode == ProfileMode.student)
+                  _buildStudentSection(context, label, label3, surface, accent)
+                else
+                  _buildTeacherSection(context, label, label3, surface, accent),
+                const SizedBox(height: 32),
+                _buildThemeSection(context, label, label3, surface),
+                const SizedBox(height: 16),
+                _buildDataSection(context, label3, surface),
+              ]),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -182,8 +195,8 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
               ? 'Студент'
               : 'Преподаватель',
           icon: _editProfile.mode == ProfileMode.student
-              ? Icons.group_rounded
-              : Icons.person_rounded,
+              ? CupertinoIcons.person_2
+              : CupertinoIcons.person,
           accent: accent,
           labelColor: label,
           label3: label3,
@@ -205,7 +218,7 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
         _FieldTile(
           fieldLabel: 'Группа',
           value: _editProfile.groupName ?? '—',
-          icon: Icons.class_rounded,
+          icon: CupertinoIcons.book,
           accent: accent,
           labelColor: label,
           label3: label3,
@@ -218,7 +231,7 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
           value: _editProfile.subgroup != null
               ? '${_editProfile.subgroup}'
               : '—',
-          icon: Icons.people_alt_rounded,
+          icon: CupertinoIcons.person_2,
           accent: accent,
           labelColor: label,
           label3: label3,
@@ -258,7 +271,7 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
         _FieldTile(
           fieldLabel: 'Преподаватель',
           value: _editProfile.teacherName ?? '—',
-          icon: Icons.person_rounded,
+          icon: CupertinoIcons.person,
           accent: accent,
           labelColor: label,
           label3: label3,
@@ -272,24 +285,46 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
   // ── Диалоги выбора ─────────────────────────────────────────────────────────
 
   Future<void> _showModePicker(BuildContext context) async {
-    final mode = await showModalBottomSheet<ProfileMode>(
+    final mode = await showCupertinoModalPopup<ProfileMode>(
       context: context,
-      builder: (_) => const _ModePickerSheet(),
+      builder: (ctx) => CupertinoActionSheet(
+        title: const Text('Выберите режим'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(ctx, ProfileMode.student),
+            child: const Text('Студент'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(ctx, ProfileMode.teacher),
+            child: const Text('Преподаватель'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Отмена'),
+        ),
+      ),
     );
     if (mode != null && mode != _editProfile.mode) {
       setState(() {
-        // При смене режима сбрасываем поля старого режима
         _editProfile = Profile(mode: mode);
       });
     }
   }
 
   Future<void> _showGroupPicker(BuildContext context) async {
+    final surface = AppColors.resolve(
+        context, AppColors.surfaceLight, AppColors.surfaceDark);
+    final bg =
+        AppColors.resolve(context, AppColors.bgLight, AppColors.bgDark);
     final group = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: bg,
       builder: (_) => _GroupPickerSheet(
         groupsRepo: ref.read(groupsRepositoryProvider),
+        surface: surface,
+        bg: bg,
       ),
     );
     if (group != null) {
@@ -305,9 +340,22 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
   }
 
   Future<void> _showSubgroupPicker(BuildContext context) async {
-    final subgroup = await showModalBottomSheet<int>(
+    final subgroup = await showCupertinoModalPopup<int>(
       context: context,
-      builder: (_) => const _SubgroupPickerSheet(),
+      builder: (ctx) => CupertinoActionSheet(
+        title: const Text('Выберите подгруппу'),
+        actions: [
+          for (final i in [1, 2])
+            CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(ctx, i),
+              child: Text('Подгруппа $i'),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Отмена'),
+        ),
+      ),
     );
     if (subgroup != null) {
       setState(() {
@@ -322,11 +370,18 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
   }
 
   Future<void> _showTeacherPicker(BuildContext context) async {
+    final surface = AppColors.resolve(
+        context, AppColors.surfaceLight, AppColors.surfaceDark);
+    final bg =
+        AppColors.resolve(context, AppColors.bgLight, AppColors.bgDark);
     final teacher = await showModalBottomSheet<TeacherModel>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: bg,
       builder: (_) => _TeacherPickerSheet(
         teachersRepo: ref.read(teachersRepositoryProvider),
+        surface: surface,
+        bg: bg,
       ),
     );
     if (teacher != null) {
@@ -342,8 +397,8 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
 
   // ── Тема оформления ───────────────────────────────────────────────────────
 
-  Widget _buildThemeSection(BuildContext context, Color label, Color label3,
-      Color surface) {
+  Widget _buildThemeSection(
+      BuildContext context, Color label, Color label3, Color surface) {
     final settingsAsync = ref.watch(settingsNotifierProvider);
     final selected = settingsAsync.valueOrNull?.theme ?? AppTheme.system;
 
@@ -361,31 +416,18 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
                 style: AppTextStyles.meta.copyWith(color: label3),
               ),
               const SizedBox(height: 12),
-              SegmentedButton<AppTheme>(
-                showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment(
-                    value: AppTheme.system,
-                    label: Text('Авто'),
-                    icon: Icon(Icons.brightness_auto_outlined),
-                  ),
-                  ButtonSegment(
-                    value: AppTheme.light,
-                    label: Text('Светлая'),
-                    icon: Icon(Icons.light_mode_outlined),
-                  ),
-                  ButtonSegment(
-                    value: AppTheme.dark,
-                    label: Text('Тёмная'),
-                    icon: Icon(Icons.dark_mode_outlined),
-                  ),
-                ],
-                selected: {selected},
-                onSelectionChanged: (set) {
-                  if (set.isNotEmpty) {
+              CupertinoSlidingSegmentedControl<AppTheme>(
+                groupValue: selected,
+                children: const {
+                  AppTheme.system: Text('Авто'),
+                  AppTheme.light: Text('Светлая'),
+                  AppTheme.dark: Text('Тёмная'),
+                },
+                onValueChanged: (v) {
+                  if (v != null) {
                     ref
                         .read(settingsNotifierProvider.notifier)
-                        .setTheme(set.first);
+                        .setTheme(v);
                   }
                 },
               ),
@@ -398,7 +440,8 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
 
   // ── Сброс данных ──────────────────────────────────────────────────────────
 
-  Widget _buildDataSection(BuildContext context, Color label3, Color surface) {
+  Widget _buildDataSection(
+      BuildContext context, Color label3, Color surface) {
     final Color red =
         AppColors.resolve(context, AppColors.redLight, AppColors.redDark);
 
@@ -406,30 +449,27 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
       title: 'Данные',
       surface: surface,
       children: [
-        InkWell(
+        GestureDetector(
           onTap: _isResetting ? null : _confirmReset,
-          borderRadius: BorderRadius.circular(12),
+          behavior: HitTestBehavior.opaque,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     'Сбросить данные и настройки',
                     style: TextStyle(
-                      color: _isResetting ? red.withValues(alpha: 0.4) : red,
+                      color:
+                          _isResetting ? red.withValues(alpha: 0.4) : red,
                       fontSize: 16,
                     ),
                   ),
                 ),
                 if (_isResetting)
-                  SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: red.withValues(alpha: 0.4),
-                    ),
+                  CupertinoActivityIndicator(
+                    color: red.withValues(alpha: 0.4),
                   ),
               ],
             ),
@@ -440,26 +480,22 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
   }
 
   Future<void> _confirmReset() async {
-    final messenger = ScaffoldMessenger.of(context);
-    final redColor =
-        AppColors.resolve(context, AppColors.redLight, AppColors.redDark);
-
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showCupertinoDialog<bool>(
       context: context,
       barrierDismissible: true,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => CupertinoAlertDialog(
         title: const Text('Сбросить данные?'),
         content: const Text(
           'Все данные профиля и кэш расписания будут удалены. '
           'Отменить действие невозможно.',
         ),
         actions: [
-          TextButton(
+          CupertinoDialogAction(
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Отмена'),
           ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: redColor),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Сбросить'),
           ),
@@ -475,27 +511,23 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
       await ref.read(settingsNotifierProvider.notifier).resetAllData();
     } catch (e, st) {
       AppLogger.error('ProfileScreen._confirmReset: $e\n$st');
-      if (mounted) {
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Не удалось сбросить данные. Попробуйте снова.'),
-          ),
-        );
-      }
     } finally {
       if (mounted) setState(() => _isResetting = false);
     }
   }
 
-  Widget _divider(BuildContext context) => Divider(
-        height: 1,
+  Widget _divider(BuildContext context) => Container(
+        height: 0.5,
+        margin: const EdgeInsets.only(left: 16),
         color: AppColors.resolve(
             context, AppColors.separatorLight, AppColors.separatorDark),
-        indent: 16,
       );
 }
 
 // ── Переиспользуемые виджеты ──────────────────────────────────────────────────
+
+/// Height of the custom iOS tab bar (matches _kTabBarHeight in app_router.dart).
+const double _kTabBarHeight = 49.0;
 
 class _Section extends StatelessWidget {
   const _Section({
@@ -557,22 +589,29 @@ class _FieldTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: accent, size: 22),
-      title: Text(fieldLabel,
-          style: AppTextStyles.meta.copyWith(color: label3)),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(value,
-              style: AppTextStyles.subjectName.copyWith(color: labelColor)),
-          if (isEditing) ...[
-            const SizedBox(width: 4),
-            Icon(Icons.chevron_right_rounded, color: label3, size: 18),
-          ],
-        ],
-      ),
+    return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Icon(icon, color: accent, size: 22),
+            const SizedBox(width: 12),
+            Text(fieldLabel,
+                style: AppTextStyles.meta.copyWith(color: label3)),
+            const Spacer(),
+            Text(value,
+                style:
+                    AppTextStyles.subjectName.copyWith(color: labelColor)),
+            if (isEditing) ...[
+              const SizedBox(width: 4),
+              Icon(CupertinoIcons.chevron_right, color: label3, size: 18),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
@@ -615,121 +654,52 @@ class _NameTileState extends State<_NameTile> {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(Icons.badge_rounded, color: widget.accent, size: 22),
-      title: Text('Имя',
-          style: AppTextStyles.meta.copyWith(color: widget.label3)),
-      trailing: widget.isEditing
-          ? SizedBox(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Icon(CupertinoIcons.tag, color: widget.accent, size: 22),
+          const SizedBox(width: 12),
+          Text('Имя',
+              style: AppTextStyles.meta.copyWith(color: widget.label3)),
+          const Spacer(),
+          if (widget.isEditing)
+            SizedBox(
               width: 160,
-              child: TextField(
+              child: CupertinoTextField(
                 controller: _controller,
                 textAlign: TextAlign.right,
-                style:
-                    AppTextStyles.subjectName.copyWith(color: widget.label),
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Необязательно',
-                ),
+                style: AppTextStyles.subjectName
+                    .copyWith(color: widget.label),
+                placeholder: 'Необязательно',
+                decoration: null,
                 onChanged: widget.onChanged,
               ),
             )
-          : Text(
+          else
+            Text(
               widget.displayName ?? '—',
               style:
                   AppTextStyles.subjectName.copyWith(color: widget.label),
             ),
-    );
-  }
-}
-
-// ── Bottom sheets ─────────────────────────────────────────────────────────────
-
-class _ModePickerSheet extends StatelessWidget {
-  const _ModePickerSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    final Color label =
-        AppColors.resolve(context, AppColors.labelLight, AppColors.labelDark);
-    final Color label3 = AppColors.resolve(
-        context, AppColors.label3Light, AppColors.label3Dark);
-    final Color accent =
-        AppColors.resolve(context, AppColors.accentLight, AppColors.accentDark);
-
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: Text('Выберите режим',
-                  style: AppTextStyles.subjectName.copyWith(color: label)),
-            ),
-            ListTile(
-              leading: Icon(Icons.group_rounded, color: accent),
-              title: Text('Студент',
-                  style: AppTextStyles.subjectName.copyWith(color: label)),
-              subtitle: Text('Расписание по группе',
-                  style: AppTextStyles.meta.copyWith(color: label3)),
-              onTap: () => Navigator.pop(context, ProfileMode.student),
-            ),
-            ListTile(
-              leading: Icon(Icons.person_rounded, color: accent),
-              title: Text('Преподаватель',
-                  style: AppTextStyles.subjectName.copyWith(color: label)),
-              subtitle: Text('Расписание по преподавателю',
-                  style: AppTextStyles.meta.copyWith(color: label3)),
-              onTap: () => Navigator.pop(context, ProfileMode.teacher),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
 }
 
-class _SubgroupPickerSheet extends StatelessWidget {
-  const _SubgroupPickerSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    final Color label =
-        AppColors.resolve(context, AppColors.labelLight, AppColors.labelDark);
-    final Color accent =
-        AppColors.resolve(context, AppColors.accentLight, AppColors.accentDark);
-
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: Text('Выберите подгруппу',
-                  style: AppTextStyles.subjectName.copyWith(color: label)),
-            ),
-            for (final i in [1, 2])
-              ListTile(
-                title: Text('Подгруппа $i',
-                    style: AppTextStyles.subjectName.copyWith(color: label)),
-                leading: Icon(Icons.people_alt_rounded, color: accent),
-                onTap: () => Navigator.pop(context, i),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// ── Bottom sheets (поиск) ─────────────────────────────────────────────────────
 
 class _GroupPickerSheet extends StatefulWidget {
-  const _GroupPickerSheet({required this.groupsRepo});
+  const _GroupPickerSheet({
+    required this.groupsRepo,
+    required this.surface,
+    required this.bg,
+  });
 
   final dynamic groupsRepo;
+  final Color surface;
+  final Color bg;
 
   @override
   State<_GroupPickerSheet> createState() => _GroupPickerSheetState();
@@ -762,13 +732,11 @@ class _GroupPickerSheetState extends State<_GroupPickerSheet> {
         AppColors.resolve(context, AppColors.labelLight, AppColors.labelDark);
     final Color label3 = AppColors.resolve(
         context, AppColors.label3Light, AppColors.label3Dark);
-    final Color surface = AppColors.resolve(
-        context, AppColors.surfaceLight, AppColors.surfaceDark);
 
     if (_loading) {
       return const SizedBox(
           height: 200,
-          child: Center(child: CircularProgressIndicator()));
+          child: Center(child: CupertinoActivityIndicator()));
     }
 
     final filtered = _groups
@@ -793,22 +761,9 @@ class _GroupPickerSheetState extends State<_GroupPickerSheet> {
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextField(
+            child: CupertinoSearchTextField(
               onChanged: (v) => setState(() => _query = v),
-              decoration: InputDecoration(
-                hintText: 'Поиск группы...',
-                hintStyle: AppTextStyles.meta.copyWith(color: label3),
-                prefixIcon:
-                    Icon(Icons.search_rounded, color: label3, size: 20),
-                filled: true,
-                fillColor: surface,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
+              placeholder: 'Поиск группы...',
             ),
           ),
           const SizedBox(height: 8),
@@ -833,27 +788,44 @@ class _GroupPickerSheetState extends State<_GroupPickerSheet> {
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        color: surface,
+                        color: widget.surface,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
                         children: [
-                          for (int j = 0; j < inst.groups.length; j++) ...[
+                          for (int j = 0;
+                              j < inst.groups.length;
+                              j++) ...[
                             if (j > 0)
-                              Divider(
-                                height: 1,
+                              Container(
+                                height: 0.5,
+                                margin: const EdgeInsets.only(left: 16),
                                 color: AppColors.resolve(
                                     context,
                                     AppColors.separatorLight,
                                     AppColors.separatorDark),
-                                indent: 16,
                               ),
-                            ListTile(
-                              title: Text(inst.groups[j],
-                                  style: AppTextStyles.subjectName
-                                      .copyWith(color: label)),
+                            GestureDetector(
                               onTap: () =>
                                   Navigator.pop(context, inst.groups[j]),
+                              behavior: HitTestBehavior.opaque,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 12),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        inst.groups[j],
+                                        style: AppTextStyles.subjectName
+                                            .copyWith(color: label),
+                                      ),
+                                    ),
+                                    Icon(CupertinoIcons.chevron_right,
+                                        color: label3, size: 16),
+                                  ],
+                                ),
+                              ),
                             ),
                           ],
                         ],
@@ -871,9 +843,15 @@ class _GroupPickerSheetState extends State<_GroupPickerSheet> {
 }
 
 class _TeacherPickerSheet extends StatefulWidget {
-  const _TeacherPickerSheet({required this.teachersRepo});
+  const _TeacherPickerSheet({
+    required this.teachersRepo,
+    required this.surface,
+    required this.bg,
+  });
 
   final dynamic teachersRepo;
+  final Color surface;
+  final Color bg;
 
   @override
   State<_TeacherPickerSheet> createState() => _TeacherPickerSheetState();
@@ -906,13 +884,11 @@ class _TeacherPickerSheetState extends State<_TeacherPickerSheet> {
         AppColors.resolve(context, AppColors.labelLight, AppColors.labelDark);
     final Color label3 = AppColors.resolve(
         context, AppColors.label3Light, AppColors.label3Dark);
-    final Color surface = AppColors.resolve(
-        context, AppColors.surfaceLight, AppColors.surfaceDark);
 
     if (_loading) {
       return const SizedBox(
           height: 200,
-          child: Center(child: CircularProgressIndicator()));
+          child: Center(child: CupertinoActivityIndicator()));
     }
 
     final filtered = _teachers
@@ -931,56 +907,68 @@ class _TeacherPickerSheetState extends State<_TeacherPickerSheet> {
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextField(
+            child: CupertinoSearchTextField(
               onChanged: (v) => setState(() => _query = v),
-              decoration: InputDecoration(
-                hintText: 'Поиск преподавателя...',
-                hintStyle: AppTextStyles.meta.copyWith(color: label3),
-                prefixIcon:
-                    Icon(Icons.search_rounded, color: label3, size: 20),
-                filled: true,
-                fillColor: surface,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
+              placeholder: 'Поиск преподавателя...',
             ),
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: ListView.separated(
+            child: ListView.builder(
               controller: controller,
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               itemCount: filtered.length,
-              separatorBuilder: (context, index) => Divider(
-                height: 1,
-                color: AppColors.resolve(
-                    context,
-                    AppColors.separatorLight,
-                    AppColors.separatorDark),
-                indent: 16,
-              ),
               itemBuilder: (_, i) {
                 final t = filtered[i];
-                return ListTile(
-                  tileColor: surface,
-                  shape: i == 0
-                      ? const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(12)))
-                      : i == filtered.length - 1
-                          ? const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.vertical(
-                                  bottom: Radius.circular(12)))
-                          : null,
-                  title: Text(t.name,
-                      style:
-                          AppTextStyles.subjectName.copyWith(color: label)),
-                  onTap: () => Navigator.pop(context, t),
+                final isFirst = i == 0;
+                final isLast = i == filtered.length - 1;
+                return Column(
+                  children: [
+                    if (!isFirst)
+                      Container(
+                        height: 0.5,
+                        margin: const EdgeInsets.only(left: 16),
+                        color: AppColors.resolve(
+                            context,
+                            AppColors.separatorLight,
+                            AppColors.separatorDark),
+                      ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.vertical(
+                        top: isFirst
+                            ? const Radius.circular(12)
+                            : Radius.zero,
+                        bottom: isLast
+                            ? const Radius.circular(12)
+                            : Radius.zero,
+                      ),
+                      child: ColoredBox(
+                        color: widget.surface,
+                        child: GestureDetector(
+                          onTap: () => Navigator.pop(context, t),
+                          behavior: HitTestBehavior.opaque,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    t.name,
+                                    style: AppTextStyles.subjectName
+                                        .copyWith(color: label),
+                                  ),
+                                ),
+                                Icon(CupertinoIcons.chevron_right,
+                                    color: label3, size: 16),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 );
               },
             ),
