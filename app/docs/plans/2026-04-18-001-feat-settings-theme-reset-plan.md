@@ -1,7 +1,7 @@
 ---
 title: "feat: Settings screen — theme switching and data reset"
 type: feat
-status: active
+status: completed
 date: 2026-04-18
 origin: docs/brainstorms/2026-04-18-settings-theme-reset-requirements.md
 ---
