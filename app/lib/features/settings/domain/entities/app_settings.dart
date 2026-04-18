@@ -1,12 +1,14 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 enum AppTheme { system, light, dark }
 
 extension AppThemeX on AppTheme {
-  ThemeMode toThemeMode() => switch (this) {
-        AppTheme.system => ThemeMode.system,
-        AppTheme.light => ThemeMode.light,
-        AppTheme.dark => ThemeMode.dark,
+  /// Returns the [Brightness] for [CupertinoApp.theme].
+  /// [AppTheme.system] returns null — CupertinoApp follows the device setting.
+  Brightness? toBrightness() => switch (this) {
+        AppTheme.system => null,
+        AppTheme.light => Brightness.light,
+        AppTheme.dark => Brightness.dark,
       };
 }
 

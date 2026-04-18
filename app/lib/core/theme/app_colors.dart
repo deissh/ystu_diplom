@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 import '../../features/schedule/domain/entities/lesson_type.dart';
 
@@ -74,7 +74,7 @@ class AppColors {
 
   /// Returns [light] when the scaffold is in light mode, [dark] otherwise.
   static Color resolve(BuildContext context, Color light, Color dark) =>
-      Theme.of(context).brightness == Brightness.dark ? dark : light;
+      CupertinoTheme.brightnessOf(context) == Brightness.dark ? dark : light;
 
   /// Standard iOS-style card shadow token.
   ///

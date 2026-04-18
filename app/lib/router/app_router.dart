@@ -1,10 +1,12 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show Material, MaterialType, Scaffold, Theme;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/theme/app_colors.dart';
+import '../core/theme/app_theme.dart';
 import '../features/calendar/presentation/screens/calendar_screen.dart';
 import '../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
@@ -17,6 +19,9 @@ final _rootNavKey = GlobalKey<NavigatorState>();
 final _scheduleNavKey = GlobalKey<NavigatorState>(debugLabel: 'schedule');
 final _calendarNavKey = GlobalKey<NavigatorState>(debugLabel: 'calendar');
 final _profileNavKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
+
+/// Height of the iOS-style custom tab bar (matches CupertinoTabBar).
+const double _kTabBarHeight = 49.0;
 
 /// GoRouter провайдер с redirect guard для онбординга.
 ///
@@ -39,7 +44,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/onboarding',
-        builder: (context, state) => const OnboardingScreen(),
+        pageBuilder: (context, state) => CupertinoPage(
+          key: state.pageKey,
+          // Wrap in Theme+Material so Material widgets inside
+          // OnboardingScreen have the correct ancestors under CupertinoApp.
+          child: Theme(
+            data: AppThemeData.light(),
+            child: Material(
+              color: AppColors.bgLight,
+              child: const OnboardingScreen(),
+            ),
+          ),
+        ),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => _ScaffoldWithNavBar(shell: shell),
@@ -49,7 +65,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/schedule',
-                builder: (context, state) => const ScheduleScreen(),
+                pageBuilder: (context, state) => CupertinoPage(
+                  key: state.pageKey,
+                  child: const ScheduleScreen(),
+                ),
               ),
             ],
           ),
@@ -58,7 +77,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/calendar',
-                builder: (context, state) => const CalendarScreen(),
+                pageBuilder: (context, state) => CupertinoPage(
+                  key: state.pageKey,
+                  child: const CalendarScreen(),
+                ),
               ),
             ],
           ),
@@ -67,7 +89,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/profile',
-                builder: (context, state) => const ProfileScreen(),
+                pageBuilder: (context, state) => CupertinoPage(
+                  key: state.pageKey,
+                  child: const ProfileScreen(),
+                ),
               ),
             ],
           ),
@@ -80,6 +105,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return router;
 });
 
+/// Shell scaffold wrapping the three tab branches.
+///
+/// Uses a [Material] ancestor (transparency type) so that [Scaffold] — which
+/// requires a Material ancestor — works correctly under [CupertinoApp].
 class _ScaffoldWithNavBar extends StatelessWidget {
   final StatefulNavigationShell shell;
 
@@ -87,30 +116,32 @@ class _ScaffoldWithNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // extendBody: true lets the body render behind the bottom bar so
-      // BackdropFilter in _IosTabBar can see and blur the content below.
-      extendBody: true,
-      body: shell,
-      bottomNavigationBar: _IosTabBar(
-        currentIndex: shell.currentIndex,
-        onTap: (i) => shell.goBranch(
-          i,
-          initialLocation: i == shell.currentIndex,
+    // Material(transparency) provides the required Material ancestor for
+    // Scaffold without adding any visual background of its own.
+    return Material(
+      type: MaterialType.transparency,
+      child: Scaffold(
+        // extendBody lets the body render behind the frosted tab bar so
+        // BackdropFilter in _IosTabBar can blur the content below.
+        extendBody: true,
+        body: shell,
+        bottomNavigationBar: _IosTabBar(
+          currentIndex: shell.currentIndex,
+          onTap: (i) => shell.goBranch(
+            i,
+            initialLocation: i == shell.currentIndex,
+          ),
         ),
       ),
     );
   }
 }
 
-/// iOS-style frosted-glass tab bar.
+/// iOS-style frosted-glass tab bar with Cupertino icons.
 ///
 /// Uses [BackdropFilter] with [extendBody] on the parent [Scaffold] to achieve
-/// a translucent blur effect. The bar is composed of:
-///   - A hairline top separator (0.5 dp)
-///   - A [BackdropFilter] blur layer (sigma 20)
-///   - A semi-transparent surface container (85% opacity)
-///   - A standard [BottomNavigationBar] with no elevation and iOS colours
+/// a translucent blur effect. The bar uses a custom [_CupertinoTabRow] instead
+/// of [BottomNavigationBar] for a native iOS appearance.
 class _IosTabBar extends StatelessWidget {
   const _IosTabBar({required this.currentIndex, required this.onTap});
 
@@ -119,7 +150,7 @@ class _IosTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
 
     final Color surface = AppColors.resolve(
       context,
@@ -131,13 +162,8 @@ class _IosTabBar extends StatelessWidget {
       AppColors.separatorLight,
       AppColors.separatorDark,
     );
-    final Color accent = AppColors.resolve(
-      context,
-      AppColors.accentLight,
-      AppColors.accentDark,
-    );
 
-    // Semi-transparent surface: 85% in light, 90% in dark (dark needs less blur)
+    // Semi-transparent surface: 85% in light, 90% in dark
     final Color barBg = surface.withValues(alpha: isDark ? 0.9 : 0.85);
 
     return ClipRect(
@@ -150,32 +176,74 @@ class _IosTabBar extends StatelessWidget {
             children: [
               // Hairline top separator — mimics iOS tab bar border
               Container(height: 0.5, color: separator),
-              BottomNavigationBar(
+              _CupertinoTabRow(
                 currentIndex: currentIndex,
                 onTap: onTap,
-                elevation: 0,
-                backgroundColor: Colors.transparent,
-                selectedItemColor: accent,
-                unselectedItemColor: AppColors.iconInactive,
-                // Remove default selected item indicator animation
-                type: BottomNavigationBarType.fixed,
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.calendar_today),
-                    label: 'Расписание',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.calendar_month),
-                    label: 'Календарь',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.person),
-                    label: 'Профиль',
-                  ),
-                ],
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Cupertino-style tab row with three items.
+class _CupertinoTabRow extends StatelessWidget {
+  const _CupertinoTabRow({
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  static const _items = [
+    (icon: CupertinoIcons.calendar, label: 'Расписание'),
+    (icon: CupertinoIcons.calendar_badge_plus, label: 'Календарь'),
+    (icon: CupertinoIcons.person, label: 'Профиль'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final Color accent = AppColors.resolve(
+      context,
+      AppColors.accentLight,
+      AppColors.accentDark,
+    );
+    final bottomPad = MediaQuery.of(context).padding.bottom;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomPad),
+      child: SizedBox(
+        height: _kTabBarHeight,
+        child: Row(
+          children: List.generate(_items.length, (i) {
+            final item = _items[i];
+            final isActive = i == currentIndex;
+            final color = isActive ? accent : AppColors.iconInactive;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => onTap(i),
+                behavior: HitTestBehavior.opaque,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(item.icon, color: color, size: 22),
+                    const SizedBox(height: 2),
+                    Text(
+                      item.label,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: color,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
         ),
       ),
     );

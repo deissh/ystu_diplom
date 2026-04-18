@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
@@ -12,6 +13,35 @@ import 'app_text_styles.dart';
 ///   theme: AppThemeData.light(),
 ///   darkTheme: AppThemeData.dark(),
 ///   themeMode: themeMode,
+/// Provides [CupertinoThemeData] for the root [CupertinoApp].
+class AppCupertinoTheme {
+  const AppCupertinoTheme._();
+
+  /// Builds a [CupertinoThemeData] using the app's iOS-style palette.
+  ///
+  /// Pass [brightness] from [AppThemeX.toBrightness()].
+  /// Passing null means follow the system setting.
+  static CupertinoThemeData build(Brightness? brightness) {
+    return CupertinoThemeData(
+      brightness: brightness,
+      primaryColor: AppColors.accentLight,
+      primaryContrastingColor: AppColors.labelDark,
+      textTheme: CupertinoTextThemeData(
+        textStyle: AppTextStyles.meta,
+        navLargeTitleTextStyle: AppTextStyles.screenTitle,
+        navTitleTextStyle: AppTextStyles.subjectName,
+      ),
+    );
+  }
+}
+
+/// Provides [ThemeData] for light and dark modes.
+///
+/// Kept for Material widgets inside explicit [Theme] wrappers
+/// (onboarding screens, DraggableScrollableSheet pickers).
+///
+/// Named [AppThemeData] to avoid collision with the [AppTheme] enum defined
+/// in `features/settings/domain/entities/app_settings.dart`.
 class AppThemeData {
   const AppThemeData._();
 

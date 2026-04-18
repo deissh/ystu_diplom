@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/constants/app_constants.dart';
@@ -22,9 +22,6 @@ class App extends ConsumerWidget {
       loading: () => const _SplashScreen(),
       error: (e, _) => const _SplashScreen(),
       data: (startup) {
-        // Сидируем selectedSubjectProvider из сохранённого профиля.
-        // Вызываем один раз после загрузки — addPostFrameCallback
-        // чтобы не обновлять state во время build.
         if (startup.profile != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             final subject = _subjectFromProfile(startup.profile!);
@@ -32,18 +29,15 @@ class App extends ConsumerWidget {
           });
         }
 
-        final themeMode = ref
+        final brightness = ref
                 .watch(settingsNotifierProvider)
                 .valueOrNull
                 ?.theme
-                .toThemeMode() ??
-            ThemeMode.system;
+                .toBrightness();
 
-        return MaterialApp.router(
+        return CupertinoApp.router(
           title: AppConstants.appName,
-          theme: AppThemeData.light(),
-          darkTheme: AppThemeData.dark(),
-          themeMode: themeMode,
+          theme: AppCupertinoTheme.build(brightness),
           routerConfig: ref.watch(appRouterProvider),
         );
       },
@@ -68,9 +62,9 @@ class _SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+    return const CupertinoApp(
+      home: CupertinoPageScaffold(
+        child: Center(child: CupertinoActivityIndicator()),
       ),
     );
   }
