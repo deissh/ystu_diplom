@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -13,7 +13,7 @@ import '../widgets/teacher_picker_page.dart';
 /// Мультишаговый онбординг-wizard.
 ///
 /// Использует [PageView] с [NeverScrollableScrollPhysics] — навигация только
-/// программная. Кнопка «Назад» в AppBar возвращает на предыдущую страницу.
+/// программная. Кнопка «Назад» возвращает на предыдущую страницу.
 ///
 /// Страницы:
 ///   0 — Выбор режима (Student / Teacher)
@@ -57,43 +57,45 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final Color bg =
         AppColors.resolve(context, AppColors.bgLight, AppColors.bgDark);
 
-    // Определяем страницы в зависимости от режима
     final pages = _buildPages(state);
 
-    return Scaffold(
+    return CupertinoPageScaffold(
       backgroundColor: bg,
-      appBar: _currentPage > 0
-          ? AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                onPressed: _back,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_currentPage > 0)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: CupertinoButton(
+                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                  onPressed: _back,
+                  child: const Icon(CupertinoIcons.back),
+                ),
               ),
-            )
-          : null,
-      body: SafeArea(
-        child: PageView(
-          controller: _pageController,
-          physics: const NeverScrollableScrollPhysics(),
-          children: pages,
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: pages,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   List<Widget> _buildPages(OnboardingState state) {
-    // Страница 0 — выбор режима
     final modePage = ModeSelectionPage(
       onModeSelected: () => _goTo(1),
     );
 
-    // Страница 1 — выбор группы или преподавателя
     Widget listPage;
     if (state.mode == ProfileMode.teacher) {
       listPage = TeacherPickerPage(
         onTeacherSelected: () {
-          // У преподавателя нет шагов после выбора — сразу завершаем
           ref.read(onboardingProvider.notifier).complete();
         },
       );
@@ -107,12 +109,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       return [modePage, listPage];
     }
 
-    // Страница 2 — подгруппа (student only)
     final subgroupPage = SubgroupPickerPage(
       onSubgroupSelected: () => _goTo(3),
     );
 
-    // Страница 3 — имя (student only)
     final namePage = NameEntryPage(
       onFinish: () => ref.read(onboardingProvider.notifier).complete(),
     );

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -15,14 +15,7 @@ class TeacherPickerPage extends ConsumerStatefulWidget {
 }
 
 class _TeacherPickerPageState extends ConsumerState<TeacherPickerPage> {
-  final _searchController = TextEditingController();
   String _query = '';
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +31,7 @@ class _TeacherPickerPageState extends ConsumerState<TeacherPickerPage> {
         context, AppColors.surfaceLight, AppColors.surfaceDark);
 
     if (state.isLoadingList && state.teachers.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CupertinoActivityIndicator());
     }
 
     if (state.listFailure != null && state.teachers.isEmpty) {
@@ -67,65 +60,74 @@ class _TeacherPickerPageState extends ConsumerState<TeacherPickerPage> {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: TextField(
-            controller: _searchController,
+          child: CupertinoSearchTextField(
             onChanged: (v) => setState(() => _query = v),
-            decoration: InputDecoration(
-              hintText: 'Поиск...',
-              hintStyle: AppTextStyles.meta.copyWith(color: label3),
-              prefixIcon: Icon(Icons.search_rounded, color: label3, size: 20),
-              filled: true,
-              fillColor: surface,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-            ),
+            placeholder: 'Поиск...',
           ),
         ),
         const SizedBox(height: 8),
         Expanded(
-          child: ListView.separated(
+          child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             itemCount: filtered.length,
-            separatorBuilder: (context, index) => Divider(
-              height: 1,
-              color: AppColors.resolve(
-                context,
-                AppColors.separatorLight,
-                AppColors.separatorDark,
-              ),
-              indent: 16,
-            ),
             itemBuilder: (context, i) {
               final teacher = filtered[i];
               final isSelected = state.selectedTeacherId == teacher.id;
-              return ListTile(
-                tileColor: surface,
-                shape: i == 0
-                    ? const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(12)))
-                    : i == filtered.length - 1
-                        ? const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                                bottom: Radius.circular(12)))
-                        : null,
-                title: Text(
-                  teacher.name,
-                  style: AppTextStyles.subjectName.copyWith(color: label),
-                ),
-                trailing: isSelected
-                    ? Icon(Icons.check_rounded, color: accent, size: 20)
-                    : null,
-                onTap: () {
-                  ref
-                      .read(onboardingProvider.notifier)
-                      .selectTeacher(teacher.id, teacher.name);
-                  widget.onTeacherSelected();
-                },
+              final isFirst = i == 0;
+              final isLast = i == filtered.length - 1;
+              return Column(
+                children: [
+                  if (!isFirst)
+                    Container(
+                      height: 0.5,
+                      margin: const EdgeInsets.only(left: 16),
+                      color: AppColors.resolve(
+                        context,
+                        AppColors.separatorLight,
+                        AppColors.separatorDark,
+                      ),
+                    ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.vertical(
+                      top: isFirst
+                          ? const Radius.circular(12)
+                          : Radius.zero,
+                      bottom: isLast
+                          ? const Radius.circular(12)
+                          : Radius.zero,
+                    ),
+                    child: ColoredBox(
+                      color: surface,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          ref
+                              .read(onboardingProvider.notifier)
+                              .selectTeacher(teacher.id, teacher.name);
+                          widget.onTeacherSelected();
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  teacher.name,
+                                  style: AppTextStyles.subjectName
+                                      .copyWith(color: label),
+                                ),
+                              ),
+                              if (isSelected)
+                                Icon(CupertinoIcons.check_mark,
+                                    color: accent, size: 18),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           ),
@@ -160,9 +162,8 @@ class _ErrorState extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            FilledButton(
+            CupertinoButton.filled(
               onPressed: onRetry,
-              style: FilledButton.styleFrom(backgroundColor: accent),
               child: const Text('Повторить'),
             ),
           ],

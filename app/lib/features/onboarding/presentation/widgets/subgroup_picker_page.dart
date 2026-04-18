@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -99,7 +99,8 @@ class _SubgroupButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isDark =
+        CupertinoTheme.brightnessOf(context) == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -114,7 +115,7 @@ class _SubgroupButton extends StatelessWidget {
           child: Text(
             '$number',
             style: AppTextStyles.statValue.copyWith(
-              color: isSelected ? Colors.white : label,
+              color: isSelected ? CupertinoColors.white : label,
             ),
           ),
         ),

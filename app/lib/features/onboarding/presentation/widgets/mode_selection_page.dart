@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -28,7 +28,7 @@ class ModeSelectionPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Spacer(flex: 2),
-          Icon(Icons.school_rounded, size: 64, color: accent),
+          Icon(CupertinoIcons.book_solid, size: 64, color: accent),
           const SizedBox(height: 24),
           Text(
             'Добро пожаловать',
@@ -43,7 +43,7 @@ class ModeSelectionPage extends ConsumerWidget {
           ),
           const Spacer(flex: 2),
           _ModeCard(
-            icon: Icons.group_rounded,
+            icon: CupertinoIcons.person_2,
             title: 'Студент',
             subtitle: 'Расписание по группе',
             color: accent,
@@ -59,7 +59,7 @@ class ModeSelectionPage extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           _ModeCard(
-            icon: Icons.person_rounded,
+            icon: CupertinoIcons.person,
             title: 'Преподаватель',
             subtitle: 'Расписание по преподавателю',
             color: accent,
@@ -103,7 +103,8 @@ class _ModeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isDark =
+        CupertinoTheme.brightnessOf(context) == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -130,15 +131,15 @@ class _ModeCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title,
-                      style: AppTextStyles.subjectName.copyWith(color: label)),
+                      style:
+                          AppTextStyles.subjectName.copyWith(color: label)),
                   const SizedBox(height: 2),
                   Text(subtitle,
                       style: AppTextStyles.meta.copyWith(color: label3)),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded,
-                color: label3, size: 20),
+            Icon(CupertinoIcons.chevron_right, color: label3, size: 20),
           ],
         ),
       ),

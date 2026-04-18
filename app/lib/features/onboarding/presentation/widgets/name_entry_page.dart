@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -57,49 +57,35 @@ class _NameEntryPageState extends ConsumerState<NameEntryPage> {
             textAlign: TextAlign.center,
           ),
           const Spacer(flex: 2),
-          TextField(
+          CupertinoTextField(
             controller: _controller,
             textCapitalization: TextCapitalization.words,
             style: AppTextStyles.subjectName.copyWith(color: label),
-            decoration: InputDecoration(
-              hintText: 'Имя Фамилия',
-              hintStyle: AppTextStyles.meta.copyWith(color: label3),
-              filled: true,
-              fillColor: surface,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
+            placeholder: 'Имя Фамилия',
+            placeholderStyle: AppTextStyles.meta.copyWith(color: label3),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: surface,
+              borderRadius: BorderRadius.circular(12),
             ),
             onChanged: (v) =>
                 ref.read(onboardingProvider.notifier).setDisplayName(v),
           ),
           const SizedBox(height: 24),
-          FilledButton(
-            onPressed: state.isSaving
-                ? null
-                : () {
-                    widget.onFinish();
-                  },
-            style: FilledButton.styleFrom(
-              backgroundColor: accent,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-            ),
+          CupertinoButton(
+            color: accent,
+            borderRadius: BorderRadius.circular(12),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            onPressed: state.isSaving ? null : widget.onFinish,
             child: state.isSaving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white),
+                ? const CupertinoActivityIndicator(
+                    color: CupertinoColors.white,
                   )
                 : const Text('Готово'),
           ),
           const SizedBox(height: 12),
-          TextButton(
+          CupertinoButton(
             onPressed: state.isSaving ? null : widget.onFinish,
             child: Text(
               'Пропустить',
