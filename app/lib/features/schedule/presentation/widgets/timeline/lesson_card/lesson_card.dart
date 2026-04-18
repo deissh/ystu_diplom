@@ -12,9 +12,9 @@ import 'teacher_chip.dart';
 
 /// A card displaying a single lesson.
 ///
-/// Shows the lesson type badge, subject name, teacher, room, and — when
-/// the lesson is currently active — an [ActiveBadge] and [LessonProgressBar].
-/// Completed lessons are rendered at reduced opacity (0.48).
+/// Shows the time range, lesson type badge, subject name, teacher avatar + name,
+/// room, and — when the lesson is currently active — an [ActiveBadge] and
+/// [LessonProgressBar]. Completed lessons are rendered at reduced opacity (0.48).
 class LessonCard extends ConsumerWidget {
   const LessonCard({super.key, required this.lesson});
 
@@ -50,11 +50,11 @@ class LessonCard extends ConsumerWidget {
       child: Container(
         decoration: BoxDecoration(
           color: surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: AppColors.cardShadow(isDark),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           child: IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -64,11 +64,19 @@ class LessonCard extends ConsumerWidget {
                 // ── Content ───────────────────────────────────────────────
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),
+                    padding: const EdgeInsets.fromLTRB(12, 14, 14, 14),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Row: type badge + subject name
+                        // ── Time range ────────────────────────────────────
+                        Text(
+                          '${_fmt(lesson.startTime)} – ${_fmt(lesson.endTime)}',
+                          style: AppTextStyles.timeStart.copyWith(
+                            color: label3,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        // ── Type badge + subject name ──────────────────────
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -86,8 +94,8 @@ class LessonCard extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 6),
-                        // Row: teacher + room
+                        const SizedBox(height: 8),
+                        // ── Teacher + room ─────────────────────────────────
                         Row(
                           children: [
                             Expanded(
@@ -106,9 +114,9 @@ class LessonCard extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        // Active lesson extras
+                        // ── Active lesson extras ───────────────────────────
                         if (isActive) ...[
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 10),
                           const ActiveBadge(),
                           const SizedBox(height: 6),
                           LessonProgressBar(
@@ -128,6 +136,9 @@ class LessonCard extends ConsumerWidget {
       ),
     );
   }
+
+  static String _fmt(DateTime dt) =>
+      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 }
 
 // ── Type badge ────────────────────────────────────────────────────────────────
