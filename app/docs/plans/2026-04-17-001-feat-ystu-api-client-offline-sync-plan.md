@@ -1,7 +1,7 @@
 ---
 title: "feat: Implement YSTU API client and offline-first schedule sync"
 type: feat
-status: active
+status: completed
 date: 2026-04-17
 origin: docs/brainstorms/2026-04-17-api-client-requirements.md
 ---

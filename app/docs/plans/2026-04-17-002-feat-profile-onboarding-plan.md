@@ -1,7 +1,7 @@
 ---
 title: "feat: Profile management and onboarding flow"
 type: feat
-status: active
+status: completed
 date: 2026-04-17
 origin: docs/brainstorms/2026-04-17-profile-onboarding-requirements.md
 ---

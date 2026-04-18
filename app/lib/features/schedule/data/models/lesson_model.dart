@@ -32,7 +32,7 @@ class LessonModel {
   }) {
     return LessonModel(
       groupId: groupId,
-      subject: json['lessonName'] as String,
+      subject: json['lessonName'] as String? ?? '',
       teacher: json['teacherName'] as String? ?? '',
       room: json['auditoryName'] as String? ?? '',
       type: _parseLessonType(json).label,

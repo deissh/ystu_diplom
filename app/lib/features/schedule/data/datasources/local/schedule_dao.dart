@@ -47,9 +47,10 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
   /// Использует insertOnConflictUpdate: не удаляет строку, обновляет только
   /// изменившиеся поля при конфликте uniqueKeys.
   Future<void> insertLessons(List<LessonModel> models) => batch(
-        (b) => b.insertAllOnConflictUpdate(
+        (b) => b.insertAll(
           lessonsTable,
           models.map(_toCompanion).toList(),
+          mode: InsertMode.insertOrReplace,
         ),
       );
 

@@ -1,7 +1,8 @@
 import 'package:drift/drift.dart';
-import 'package:drift_flutter/drift_flutter.dart';
 
 import 'groups_dao.dart';
+import 'open_database_native.dart'
+    if (dart.library.html) 'open_database_web.dart';
 import 'schedule_dao.dart';
 import 'teachers_dao.dart';
 
@@ -65,8 +66,7 @@ class Teachers extends Table {
   daos: [ScheduleDao, GroupsDao, TeachersDao],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase([QueryExecutor? executor])
-      : super(executor ?? driftDatabase(name: 'ystu_schedule'));
+  AppDatabase([QueryExecutor? executor]) : super(executor ?? openAppDatabase());
 
   @override
   int get schemaVersion => 2;
