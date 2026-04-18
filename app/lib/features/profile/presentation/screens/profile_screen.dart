@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show DraggableScrollableSheet, showModalBottomSheet;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/layout/app_layout.dart';
@@ -313,18 +312,22 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
   }
 
   Future<void> _showGroupPicker(BuildContext context) async {
-    final surface = AppColors.resolve(
-        context, AppColors.surfaceLight, AppColors.surfaceDark);
     final bg =
         AppColors.resolve(context, AppColors.bgLight, AppColors.bgDark);
-    final group = await showModalBottomSheet<String>(
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final group = await showCupertinoModalPopup<String>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: bg,
-      builder: (_) => _GroupPickerSheet(
-        groupsRepo: ref.read(groupsRepositoryProvider),
-        surface: surface,
-        bg: bg,
+      builder: (ctx) => SizedBox(
+        height: screenHeight * 0.85,
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          child: ColoredBox(
+            color: bg,
+            child: _GroupPickerSheet(
+              groupsRepo: ref.read(groupsRepositoryProvider),
+            ),
+          ),
+        ),
       ),
     );
     if (group != null) {
@@ -370,18 +373,22 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
   }
 
   Future<void> _showTeacherPicker(BuildContext context) async {
-    final surface = AppColors.resolve(
-        context, AppColors.surfaceLight, AppColors.surfaceDark);
     final bg =
         AppColors.resolve(context, AppColors.bgLight, AppColors.bgDark);
-    final teacher = await showModalBottomSheet<TeacherModel>(
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final teacher = await showCupertinoModalPopup<TeacherModel>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: bg,
-      builder: (_) => _TeacherPickerSheet(
-        teachersRepo: ref.read(teachersRepositoryProvider),
-        surface: surface,
-        bg: bg,
+      builder: (ctx) => SizedBox(
+        height: screenHeight * 0.85,
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          child: ColoredBox(
+            color: bg,
+            child: _TeacherPickerSheet(
+              teachersRepo: ref.read(teachersRepositoryProvider),
+            ),
+          ),
+        ),
       ),
     );
     if (teacher != null) {
@@ -691,15 +698,9 @@ class _NameTileState extends State<_NameTile> {
 // ── Bottom sheets (поиск) ─────────────────────────────────────────────────────
 
 class _GroupPickerSheet extends StatefulWidget {
-  const _GroupPickerSheet({
-    required this.groupsRepo,
-    required this.surface,
-    required this.bg,
-  });
+  const _GroupPickerSheet({required this.groupsRepo});
 
   final dynamic groupsRepo;
-  final Color surface;
-  final Color bg;
 
   @override
   State<_GroupPickerSheet> createState() => _GroupPickerSheetState();
@@ -732,11 +733,11 @@ class _GroupPickerSheetState extends State<_GroupPickerSheet> {
         AppColors.resolve(context, AppColors.labelLight, AppColors.labelDark);
     final Color label3 = AppColors.resolve(
         context, AppColors.label3Light, AppColors.label3Dark);
+    final Color surface = AppColors.resolve(
+        context, AppColors.surfaceLight, AppColors.surfaceDark);
 
     if (_loading) {
-      return const SizedBox(
-          height: 200,
-          child: Center(child: CupertinoActivityIndicator()));
+      return const Center(child: CupertinoActivityIndicator());
     }
 
     final filtered = _groups
@@ -751,107 +752,89 @@ class _GroupPickerSheetState extends State<_GroupPickerSheet> {
         .where((i) => i.groups.isNotEmpty)
         .toList();
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      maxChildSize: 0.95,
-      minChildSize: 0.4,
-      expand: false,
-      builder: (_, controller) => Column(
-        children: [
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: CupertinoSearchTextField(
-              onChanged: (v) => setState(() => _query = v),
-              placeholder: 'Поиск группы...',
-            ),
+    return Column(
+      children: [
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: CupertinoSearchTextField(
+            onChanged: (v) => setState(() => _query = v),
+            placeholder: 'Поиск группы...',
           ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: ListView.builder(
-              controller: controller,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              itemCount: filtered.length,
-              itemBuilder: (_, i) {
-                final inst = filtered[i];
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12, bottom: 4),
-                      child: Text(
-                        inst.instituteName.toUpperCase(),
-                        style: AppTextStyles.sectionHeader
-                            .copyWith(color: label3),
-                      ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            itemCount: filtered.length,
+            itemBuilder: (_, i) {
+              final inst = filtered[i];
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12, bottom: 4),
+                    child: Text(
+                      inst.instituteName.toUpperCase(),
+                      style: AppTextStyles.sectionHeader.copyWith(color: label3),
                     ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: widget.surface,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-                          for (int j = 0;
-                              j < inst.groups.length;
-                              j++) ...[
-                            if (j > 0)
-                              Container(
-                                height: 0.5,
-                                margin: const EdgeInsets.only(left: 16),
-                                color: AppColors.resolve(
-                                    context,
-                                    AppColors.separatorLight,
-                                    AppColors.separatorDark),
-                              ),
-                            GestureDetector(
-                              onTap: () =>
-                                  Navigator.pop(context, inst.groups[j]),
-                              behavior: HitTestBehavior.opaque,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 12),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        inst.groups[j],
-                                        style: AppTextStyles.subjectName
-                                            .copyWith(color: label),
-                                      ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: surface,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        for (int j = 0; j < inst.groups.length; j++) ...[
+                          if (j > 0)
+                            Container(
+                              height: 0.5,
+                              margin: const EdgeInsets.only(left: 16),
+                              color: AppColors.resolve(context,
+                                  AppColors.separatorLight,
+                                  AppColors.separatorDark),
+                            ),
+                          GestureDetector(
+                            onTap: () =>
+                                Navigator.pop(context, inst.groups[j]),
+                            behavior: HitTestBehavior.opaque,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      inst.groups[j],
+                                      style: AppTextStyles.subjectName
+                                          .copyWith(color: label),
                                     ),
-                                    Icon(CupertinoIcons.chevron_right,
-                                        color: label3, size: 16),
-                                  ],
-                                ),
+                                  ),
+                                  Icon(CupertinoIcons.chevron_right,
+                                      color: label3, size: 16),
+                                ],
                               ),
                             ),
-                          ],
+                          ),
                         ],
-                      ),
+                      ],
                     ),
-                  ],
-                );
-              },
-            ),
+                  ),
+                ],
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
 class _TeacherPickerSheet extends StatefulWidget {
-  const _TeacherPickerSheet({
-    required this.teachersRepo,
-    required this.surface,
-    required this.bg,
-  });
+  const _TeacherPickerSheet({required this.teachersRepo});
 
   final dynamic teachersRepo;
-  final Color surface;
-  final Color bg;
 
   @override
   State<_TeacherPickerSheet> createState() => _TeacherPickerSheetState();
@@ -884,11 +867,11 @@ class _TeacherPickerSheetState extends State<_TeacherPickerSheet> {
         AppColors.resolve(context, AppColors.labelLight, AppColors.labelDark);
     final Color label3 = AppColors.resolve(
         context, AppColors.label3Light, AppColors.label3Dark);
+    final Color surface = AppColors.resolve(
+        context, AppColors.surfaceLight, AppColors.surfaceDark);
 
     if (_loading) {
-      return const SizedBox(
-          height: 200,
-          child: Center(child: CupertinoActivityIndicator()));
+      return const Center(child: CupertinoActivityIndicator());
     }
 
     final filtered = _teachers
@@ -897,84 +880,71 @@ class _TeacherPickerSheetState extends State<_TeacherPickerSheet> {
             t.name.toLowerCase().contains(_query.toLowerCase()))
         .toList();
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      maxChildSize: 0.95,
-      minChildSize: 0.4,
-      expand: false,
-      builder: (_, controller) => Column(
-        children: [
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: CupertinoSearchTextField(
-              onChanged: (v) => setState(() => _query = v),
-              placeholder: 'Поиск преподавателя...',
-            ),
+    return Column(
+      children: [
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: CupertinoSearchTextField(
+            onChanged: (v) => setState(() => _query = v),
+            placeholder: 'Поиск преподавателя...',
           ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: ListView.builder(
-              controller: controller,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              itemCount: filtered.length,
-              itemBuilder: (_, i) {
-                final t = filtered[i];
-                final isFirst = i == 0;
-                final isLast = i == filtered.length - 1;
-                return Column(
-                  children: [
-                    if (!isFirst)
-                      Container(
-                        height: 0.5,
-                        margin: const EdgeInsets.only(left: 16),
-                        color: AppColors.resolve(
-                            context,
-                            AppColors.separatorLight,
-                            AppColors.separatorDark),
-                      ),
-                    ClipRRect(
-                      borderRadius: BorderRadius.vertical(
-                        top: isFirst
-                            ? const Radius.circular(12)
-                            : Radius.zero,
-                        bottom: isLast
-                            ? const Radius.circular(12)
-                            : Radius.zero,
-                      ),
-                      child: ColoredBox(
-                        color: widget.surface,
-                        child: GestureDetector(
-                          onTap: () => Navigator.pop(context, t),
-                          behavior: HitTestBehavior.opaque,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    t.name,
-                                    style: AppTextStyles.subjectName
-                                        .copyWith(color: label),
-                                  ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            itemCount: filtered.length,
+            itemBuilder: (_, i) {
+              final t = filtered[i];
+              final isFirst = i == 0;
+              final isLast = i == filtered.length - 1;
+              return Column(
+                children: [
+                  if (!isFirst)
+                    Container(
+                      height: 0.5,
+                      margin: const EdgeInsets.only(left: 16),
+                      color: AppColors.resolve(context,
+                          AppColors.separatorLight, AppColors.separatorDark),
+                    ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.vertical(
+                      top: isFirst ? const Radius.circular(12) : Radius.zero,
+                      bottom:
+                          isLast ? const Radius.circular(12) : Radius.zero,
+                    ),
+                    child: ColoredBox(
+                      color: surface,
+                      child: GestureDetector(
+                        onTap: () => Navigator.pop(context, t),
+                        behavior: HitTestBehavior.opaque,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  t.name,
+                                  style: AppTextStyles.subjectName
+                                      .copyWith(color: label),
                                 ),
-                                Icon(CupertinoIcons.chevron_right,
-                                    color: label3, size: 16),
-                              ],
-                            ),
+                              ),
+                              Icon(CupertinoIcons.chevron_right,
+                                  color: label3, size: 16),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                  ],
-                );
-              },
-            ),
+                  ),
+                ],
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
