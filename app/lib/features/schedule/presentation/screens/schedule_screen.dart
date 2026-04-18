@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/layout/app_layout.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/errors/failure.dart';
@@ -23,80 +24,84 @@ class ScheduleScreen extends ConsumerWidget {
       AppColors.bgDark,
     );
 
-    return Scaffold(
-      backgroundColor: bg,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 12),
-            const SyncStatusBar(),
-            const SizedBox(height: 8),
-            const WeekStrip(),
-            const SizedBox(height: 12),
-            Expanded(
-              child: scheduleAsync.when(
-                data: (days) {
-                  final subject = ref.read(selectedSubjectProvider);
-                  if (subject == null) {
-                    return const _NoGroupState();
-                  }
-                  if (selectedDay.weekday > DateTime.friday) {
-                    return const _WeekendState();
-                  }
-                  final lessons = lessonsForDay(days, selectedDay);
-                  if (lessons.isEmpty) {
-                    return const _FreeDayState();
-                  }
-                  final bottomPad = kBottomNavigationBarHeight +
-                      MediaQuery.of(context).padding.bottom;
-                  return ListView(
-                    padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPad),
-                    children: buildScheduleItems(lessons),
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => _ErrorState(
-                  error: error,
-                  onRetry: () => ref.invalidate(scheduleProvider),
+    return CupertinoPageScaffold(
+      child: ColoredBox(
+        color: bg,
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 12),
+              const SyncStatusBar(),
+              const SizedBox(height: 8),
+              const WeekStrip(),
+              const SizedBox(height: 12),
+              Expanded(
+                child: scheduleAsync.when(
+                  data: (days) {
+                    final subject = ref.read(selectedSubjectProvider);
+                    if (subject == null) {
+                      return const _NoGroupState();
+                    }
+                    if (selectedDay.weekday > DateTime.friday) {
+                      return const _WeekendState();
+                    }
+                    final lessons = lessonsForDay(days, selectedDay);
+                    if (lessons.isEmpty) {
+                      return const _FreeDayState();
+                    }
+                    final hPad = AppLayout.hPad(context);
+                    final bottomPad = _kTabBarHeight +
+                        MediaQuery.of(context).padding.bottom;
+                    return ListView(
+                      padding: EdgeInsets.fromLTRB(hPad, 0, hPad, bottomPad),
+                      children: buildScheduleItems(lessons),
+                    );
+                  },
+                  loading: () =>
+                      const Center(child: CupertinoActivityIndicator()),
+                  error: (error, _) => _ErrorState(
+                    error: error,
+                    onRetry: () => ref.invalidate(scheduleProvider),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
-
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
+/// Height of the custom iOS tab bar (matches _kTabBarHeight in app_router.dart).
+const double _kTabBarHeight = 49.0;
+
+// ── Empty states ──────────────────────────────────────────────────────────────
 
 class _NoGroupState extends StatelessWidget {
   const _NoGroupState();
 
   @override
-  Widget build(BuildContext context) {
-    return _StateMessage(message: 'Выберите группу в Настройках');
-  }
+  Widget build(BuildContext context) =>
+      _StateMessage(message: 'Выберите группу в Настройках');
 }
 
 class _WeekendState extends StatelessWidget {
   const _WeekendState();
 
   @override
-  Widget build(BuildContext context) {
-    return _StateMessage(message: 'Выходной - отдыхай!');
-  }
+  Widget build(BuildContext context) =>
+      _StateMessage(message: 'Выходной - отдыхай!');
 }
 
 class _FreeDayState extends StatelessWidget {
   const _FreeDayState();
 
   @override
-  Widget build(BuildContext context) {
-    return _StateMessage(message: 'Нет пар - свободный день');
-  }
+  Widget build(BuildContext context) =>
+      _StateMessage(message: 'Нет пар - свободный день');
 }
 
 class _ErrorState extends StatelessWidget {
@@ -107,11 +112,6 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color accent = AppColors.resolve(
-      context,
-      AppColors.accentLight,
-      AppColors.accentDark,
-    );
     final Color label3 = AppColors.resolve(
       context,
       AppColors.label3Light,
@@ -121,7 +121,7 @@ class _ErrorState extends StatelessWidget {
     final message = switch (error) {
       NetworkFailure() => 'Не удалось загрузить расписание: проблемы с сетью',
       ParseFailure() => 'Не удалось обработать данные расписания',
-      CacheFailure() => 'Не удалось прочитать сохраненное расписание',
+      CacheFailure() => 'Не удалось прочитать сохранённое расписание',
       _ => 'Ошибка загрузки расписания',
     };
 
@@ -137,9 +137,8 @@ class _ErrorState extends StatelessWidget {
               style: AppTextStyles.meta.copyWith(color: label3),
             ),
             const SizedBox(height: 12),
-            FilledButton(
+            CupertinoButton.filled(
               onPressed: onRetry,
-              style: FilledButton.styleFrom(backgroundColor: accent),
               child: const Text('Повторить'),
             ),
           ],
