@@ -28,7 +28,7 @@ const double _kTabBarHeight = 49.0;
 /// Использует [RouterNotifier] как [refreshListenable] — GoRouter
 /// повторно вычисляет redirect при каждом изменении startup state.
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final notifier = ref.watch(routerNotifierProvider);
+  final notifier = ref.read(routerNotifierProvider);
 
   final router = GoRouter(
     navigatorKey: _rootNavKey,
