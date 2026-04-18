@@ -1,17 +1,16 @@
 import '../../domain/entities/app_settings.dart';
 import '../../domain/repositories/settings_repository.dart';
+import '../datasources/local/settings_local_datasource.dart';
 
 class SettingsRepositoryImpl implements SettingsRepository {
-  const SettingsRepositoryImpl();
+  const SettingsRepositoryImpl(this._datasource);
+
+  final SettingsLocalDatasource _datasource;
 
   @override
-  Future<AppSettings> getSettings() async {
-    // TODO: load from SharedPreferences
-    return AppSettings.defaults;
-  }
+  Future<AppSettings> getSettings() => _datasource.getSettings();
 
   @override
-  Future<void> saveSettings(AppSettings settings) async {
-    // TODO: persist to SharedPreferences
-  }
+  Future<void> saveSettings(AppSettings settings) =>
+      _datasource.saveSettings(settings);
 }

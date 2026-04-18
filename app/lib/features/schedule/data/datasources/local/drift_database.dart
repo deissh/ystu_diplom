@@ -68,6 +68,15 @@ class Teachers extends Table {
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? openAppDatabase());
 
+  /// Удаляет все строки из всех таблиц кэша в одной транзакции.
+  ///
+  /// Используется при полном сбросе данных приложения.
+  Future<void> clearAllData() => transaction(() async {
+        await delete(lessonsTable).go();
+        await delete(groups).go();
+        await delete(teachers).go();
+      });
+
   @override
   int get schemaVersion => 2;
 

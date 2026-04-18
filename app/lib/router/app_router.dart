@@ -9,6 +9,7 @@ import '../features/calendar/presentation/screens/calendar_screen.dart';
 import '../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/schedule/presentation/screens/schedule_screen.dart';
+import '../features/settings/presentation/screens/settings_screen.dart';
 import 'router_notifier.dart';
 
 // Navigator keys — top-level to avoid recreation.
@@ -17,6 +18,7 @@ final _rootNavKey = GlobalKey<NavigatorState>();
 final _scheduleNavKey = GlobalKey<NavigatorState>(debugLabel: 'schedule');
 final _calendarNavKey = GlobalKey<NavigatorState>(debugLabel: 'calendar');
 final _profileNavKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
+final _settingsNavKey = GlobalKey<NavigatorState>(debugLabel: 'settings');
 
 /// GoRouter провайдер с redirect guard для онбординга.
 ///
@@ -68,6 +70,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/profile',
                 builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _settingsNavKey,
+            routes: [
+              GoRoute(
+                path: '/settings',
+                builder: (context, state) => const SettingsScreen(),
               ),
             ],
           ),
@@ -171,6 +182,10 @@ class _IosTabBar extends StatelessWidget {
                   BottomNavigationBarItem(
                     icon: Icon(Icons.person),
                     label: 'Профиль',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.settings_outlined),
+                    label: 'Настройки',
                   ),
                 ],
               ),

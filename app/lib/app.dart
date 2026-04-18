@@ -7,6 +7,8 @@ import 'core/theme/app_theme.dart';
 import 'features/profile/domain/entities/profile.dart';
 import 'features/schedule/domain/entities/selected_subject.dart';
 import 'features/schedule/presentation/providers/schedule_provider.dart';
+import 'features/settings/domain/entities/app_settings.dart';
+import 'features/settings/presentation/providers/settings_provider.dart';
 import 'router/app_router.dart';
 
 class App extends ConsumerWidget {
@@ -30,11 +32,18 @@ class App extends ConsumerWidget {
           });
         }
 
+        final themeMode = ref
+                .watch(settingsNotifierProvider)
+                .valueOrNull
+                ?.theme
+                .toThemeMode() ??
+            ThemeMode.system;
+
         return MaterialApp.router(
           title: AppConstants.appName,
           theme: AppThemeData.light(),
           darkTheme: AppThemeData.dark(),
-          themeMode: ThemeMode.dark,
+          themeMode: themeMode,
           routerConfig: ref.watch(appRouterProvider),
         );
       },

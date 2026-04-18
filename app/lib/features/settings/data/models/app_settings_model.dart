@@ -24,8 +24,16 @@ class AppSettingsModel {
         notificationsEnabled: settings.notificationsEnabled,
       );
 
-  AppSettings toEntity() => AppSettings(
-        theme: AppTheme.values.byName(theme),
-        notificationsEnabled: notificationsEnabled,
-      );
+  AppSettings toEntity() {
+    AppTheme resolvedTheme;
+    try {
+      resolvedTheme = AppTheme.values.byName(theme);
+    } on ArgumentError {
+      resolvedTheme = AppSettings.defaults.theme;
+    }
+    return AppSettings(
+      theme: resolvedTheme,
+      notificationsEnabled: notificationsEnabled,
+    );
+  }
 }
