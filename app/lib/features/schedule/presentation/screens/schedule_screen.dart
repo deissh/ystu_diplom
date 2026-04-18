@@ -51,12 +51,20 @@ class ScheduleScreen extends ConsumerWidget {
                     if (lessons.isEmpty) {
                       return const _FreeDayState();
                     }
+                    final now = ref.watch(nowProvider).valueOrNull;
+                    final today = DateTime.now();
+                    final isToday = selectedDay.year == today.year &&
+                        selectedDay.month == today.month &&
+                        selectedDay.day == today.day;
                     final hPad = AppLayout.hPad(context);
                     final bottomPad = _kTabBarHeight +
                         MediaQuery.of(context).padding.bottom;
                     return ListView(
                       padding: EdgeInsets.fromLTRB(hPad, 0, hPad, bottomPad),
-                      children: buildScheduleItems(lessons),
+                      children: buildScheduleItems(
+                        lessons,
+                        now: isToday ? now : null,
+                      ),
                     );
                   },
                   loading: () =>
