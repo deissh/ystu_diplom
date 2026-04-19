@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,7 +26,8 @@ class SyncStatusBar extends ConsumerWidget {
     final scheduleAsync = ref.watch(scheduleProvider);
     final now = ref.watch(nowProvider).valueOrNull ?? DateTime.now();
 
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isDark =
+        CupertinoTheme.brightnessOf(context) == Brightness.dark;
 
     final (
       Color dotColor,
@@ -33,22 +35,22 @@ class SyncStatusBar extends ConsumerWidget {
       bool isLoading,
     ) = switch (scheduleAsync) {
       AsyncData() => (
-        isDark ? AppColors.greenDark : AppColors.greenLight,
+        AppColors.resolve(context, AppColors.greenLight, AppColors.greenDark),
         'Данные актуальны',
         false,
       ),
       AsyncLoading() => (
-        isDark ? AppColors.accentDark : AppColors.accentLight,
+        AppColors.resolve(context, AppColors.accentLight, AppColors.accentDark),
         'Синхронизация...',
         true,
       ),
       AsyncError() => (
-        isDark ? AppColors.orangeDark : AppColors.orangeLight,
+        AppColors.resolve(context, AppColors.orangeLight, AppColors.orangeDark),
         'Нет подключения · данные из кэша',
         false,
       ),
       _ => (
-        isDark ? AppColors.greenDark : AppColors.greenLight,
+        AppColors.resolve(context, AppColors.greenLight, AppColors.greenDark),
         'Данные актуальны',
         false,
       ),

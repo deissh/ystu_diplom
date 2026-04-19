@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -50,7 +51,8 @@ class WeekStrip extends ConsumerWidget {
       AppColors.surfaceLight,
       AppColors.surfaceDark,
     );
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isDark =
+        CupertinoTheme.brightnessOf(context) == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),

@@ -34,9 +34,9 @@ class ScheduleScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 12),
-              const ScheduleHeader(),
-              const SizedBox(height: 12),
               const SyncStatusBar(),
+              const SizedBox(height: 12),
+              const ScheduleHeader(),
               const SizedBox(height: 8),
               const WeekStrip(),
               const SizedBox(height: 12),

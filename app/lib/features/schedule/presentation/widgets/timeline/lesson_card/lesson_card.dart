@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -27,7 +28,8 @@ class LessonCard extends ConsumerWidget {
         now.isAfter(lesson.startTime) && now.isBefore(lesson.endTime);
     final isPast = now.isAfter(lesson.endTime);
 
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isDark =
+        CupertinoTheme.brightnessOf(context) == Brightness.dark;
     final Color surface = AppColors.resolve(
       context,
       AppColors.surfaceLight,
