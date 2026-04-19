@@ -68,20 +68,10 @@ class LessonCard extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ── Time range ────────────────────────────────────
-                        Text(
-                          '${_fmt(lesson.startTime)} – ${_fmt(lesson.endTime)}',
-                          style: AppTextStyles.timeStart.copyWith(
-                            color: label3,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        // ── Type badge + subject name ──────────────────────
+                        // ── Subject name + type badge ──────────────────────
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            _TypeBadge(type: lesson.type),
-                            const SizedBox(width: 7),
                             Expanded(
                               child: Text(
                                 lesson.subject,
@@ -92,8 +82,15 @@ class LessonCard extends ConsumerWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                            const SizedBox(width: 6),
+                            _TypeBadge(type: lesson.type),
                           ],
                         ),
+                        // ── Completed badge ────────────────────────────────
+                        if (isPast) ...[
+                          const SizedBox(height: 4),
+                          _CompletedBadge(label3: label3),
+                        ],
                         const SizedBox(height: 8),
                         // ── Teacher + room ─────────────────────────────────
                         Row(
@@ -137,8 +134,6 @@ class LessonCard extends ConsumerWidget {
     );
   }
 
-  static String _fmt(DateTime dt) =>
-      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 }
 
 // ── Type badge ────────────────────────────────────────────────────────────────
@@ -165,4 +160,27 @@ class _TypeBadge extends StatelessWidget {
   }
 
   Color _typeColor(BuildContext ctx) => AppColors.lessonTypeColor(ctx, type);
+}
+
+// ── Completed badge ───────────────────────────────────────────────────────────
+
+class _CompletedBadge extends StatelessWidget {
+  const _CompletedBadge({required this.label3});
+
+  final Color label3;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: label3.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        'ЗАВЕРШЕНО',
+        style: AppTextStyles.badge.copyWith(color: label3),
+      ),
+    );
+  }
 }

@@ -7,6 +7,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/errors/failure.dart';
 import '../providers/schedule_provider.dart';
 import '../utils/schedule_ui_helpers.dart';
+import '../widgets/schedule_header.dart';
 import '../widgets/sync_status_bar.dart';
 import '../widgets/week_strip.dart';
 
@@ -32,6 +33,8 @@ class ScheduleScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SizedBox(height: 12),
+              const ScheduleHeader(),
               const SizedBox(height: 12),
               const SyncStatusBar(),
               const SizedBox(height: 8),
@@ -59,12 +62,40 @@ class ScheduleScreen extends ConsumerWidget {
                     final hPad = AppLayout.hPad(context);
                     final bottomPad = _kTabBarHeight +
                         MediaQuery.of(context).padding.bottom;
-                    return ListView(
-                      padding: EdgeInsets.fromLTRB(hPad, 0, hPad, bottomPad),
-                      children: buildScheduleItems(
-                        lessons,
-                        now: isToday ? now : null,
-                      ),
+
+                    final String sectionLabel = isToday
+                        ? 'СЕГОДНЯ • ${lessons.length} ПАР'
+                        : '${_kDayAbbr[selectedDay.weekday - 1]}, ${selectedDay.day} ${_kMonthGenitive[selectedDay.month - 1]} • ${lessons.length} ПАР';
+
+                    final Color label3 = AppColors.resolve(
+                      context,
+                      AppColors.label3Light,
+                      AppColors.label3Dark,
+                    );
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 8),
+                          child: Text(
+                            sectionLabel,
+                            style: AppTextStyles.sectionHeader.copyWith(
+                              color: label3,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: ListView(
+                            padding:
+                                EdgeInsets.fromLTRB(hPad, 0, hPad, bottomPad),
+                            children: buildScheduleItems(
+                              lessons,
+                              now: isToday ? now : null,
+                            ),
+                          ),
+                        ),
+                      ],
                     );
                   },
                   loading: () =>
@@ -85,6 +116,23 @@ class ScheduleScreen extends ConsumerWidget {
 
 /// Height of the custom iOS tab bar (matches _kTabBarHeight in app_router.dart).
 const double _kTabBarHeight = 49.0;
+
+const List<String> _kDayAbbr = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
+
+const List<String> _kMonthGenitive = [
+  'ЯНВАРЯ',
+  'ФЕВРАЛЯ',
+  'МАРТА',
+  'АПРЕЛЯ',
+  'МАЯ',
+  'ИЮНЯ',
+  'ИЮЛЯ',
+  'АВГУСТА',
+  'СЕНТЯБРЯ',
+  'ОКТЯБРЯ',
+  'НОЯБРЯ',
+  'ДЕКАБРЯ',
+];
 
 // ── Empty states ──────────────────────────────────────────────────────────────
 

@@ -70,37 +70,21 @@ class WeekStrip extends ConsumerWidget {
           }
         },
         child: Row(
-          children: [
-            IconButton(
-              onPressed: canGoPrev ? () => _shiftWeek(ref, -7) : null,
-              icon: const Icon(Icons.chevron_left),
-              visualDensity: VisualDensity.compact,
-            ),
-            Expanded(
-              child: Row(
-                children: List.generate(7, (i) {
-                  final day = currentMonday.add(Duration(days: i));
-                  final isSelected = _isSameDay(day, selectedDay);
-                  final hasLessons = daysWithLessons.contains(_dayKey(day));
-                  return Expanded(
-                    child: _DayChip(
-                      dayLabel: _dayLabels[i],
-                      dayNumber: day.day,
-                      isSelected: isSelected,
-                      hasLessons: hasLessons,
-                      onTap: () =>
-                          ref.read(selectedDayProvider.notifier).state = day,
-                    ),
-                  );
-                }),
+          children: List.generate(7, (i) {
+            final day = currentMonday.add(Duration(days: i));
+            final isSelected = _isSameDay(day, selectedDay);
+            final hasLessons = daysWithLessons.contains(_dayKey(day));
+            return Expanded(
+              child: _DayChip(
+                dayLabel: _dayLabels[i],
+                dayNumber: day.day,
+                isSelected: isSelected,
+                hasLessons: hasLessons,
+                onTap: () =>
+                    ref.read(selectedDayProvider.notifier).state = day,
               ),
-            ),
-            IconButton(
-              onPressed: canGoNext ? () => _shiftWeek(ref, 7) : null,
-              icon: const Icon(Icons.chevron_right),
-              visualDensity: VisualDensity.compact,
-            ),
-          ],
+            );
+          }),
         ),
       ),
     );
