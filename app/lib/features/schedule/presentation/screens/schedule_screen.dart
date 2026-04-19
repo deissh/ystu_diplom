@@ -64,8 +64,8 @@ class ScheduleScreen extends ConsumerWidget {
                         MediaQuery.of(context).padding.bottom;
 
                     final String sectionLabel = isToday
-                        ? 'СЕГОДНЯ • ${lessons.length} ПАР'
-                        : '${_kDayAbbr[selectedDay.weekday - 1]}, ${selectedDay.day} ${_kMonthGenitive[selectedDay.month - 1]} • ${lessons.length} ПАР';
+                        ? 'СЕГОДНЯ • ${lessons.length} ${_lessonsWord(lessons.length)}'
+                        : '${_kDayAbbr[selectedDay.weekday - 1]}, ${selectedDay.day} ${_kMonthGenitive[selectedDay.month - 1]} • ${lessons.length} ${_lessonsWord(lessons.length)}';
 
                     final Color label3 = AppColors.resolve(
                       context,
@@ -133,6 +133,18 @@ const List<String> _kMonthGenitive = [
   'НОЯБРЯ',
   'ДЕКАБРЯ',
 ];
+
+/// Returns the correct Russian genitive form of "пара" for a given count.
+///
+/// 1, 21 → "ПАРА"; 2–4, 22–24 → "ПАРЫ"; 5–20, 25–30… → "ПАР".
+String _lessonsWord(int n) {
+  final mod100 = n % 100;
+  final mod10 = n % 10;
+  if (mod100 >= 11 && mod100 <= 14) return 'ПАР';
+  if (mod10 == 1) return 'ПАРА';
+  if (mod10 >= 2 && mod10 <= 4) return 'ПАРЫ';
+  return 'ПАР';
+}
 
 // ── Empty states ──────────────────────────────────────────────────────────────
 

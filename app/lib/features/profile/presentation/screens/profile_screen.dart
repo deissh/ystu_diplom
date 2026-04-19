@@ -423,20 +423,23 @@ class _ProfileViewState extends ConsumerState<_ProfileView> {
                 style: AppTextStyles.meta.copyWith(color: label3),
               ),
               const SizedBox(height: 12),
-              CupertinoSlidingSegmentedControl<AppTheme>(
-                groupValue: selected,
-                children: const {
-                  AppTheme.system: Text('Авто'),
-                  AppTheme.light: Text('Светлая'),
-                  AppTheme.dark: Text('Тёмная'),
-                },
-                onValueChanged: (v) {
-                  if (v != null) {
-                    ref
-                        .read(settingsNotifierProvider.notifier)
-                        .setTheme(v);
-                  }
-                },
+              SizedBox(
+                width: double.infinity,
+                child: CupertinoSlidingSegmentedControl<AppTheme>(
+                  groupValue: selected,
+                  children: const {
+                    AppTheme.system: Text('Авто'),
+                    AppTheme.light: Text('Светлая'),
+                    AppTheme.dark: Text('Тёмная'),
+                  },
+                  onValueChanged: (v) {
+                    if (v != null) {
+                      ref
+                          .read(settingsNotifierProvider.notifier)
+                          .setTheme(v);
+                    }
+                  },
+                ),
               ),
             ],
           ),

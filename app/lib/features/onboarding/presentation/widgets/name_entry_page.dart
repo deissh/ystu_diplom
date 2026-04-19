@@ -82,7 +82,10 @@ class _NameEntryPageState extends ConsumerState<NameEntryPage> {
                 ? const CupertinoActivityIndicator(
                     color: CupertinoColors.white,
                   )
-                : const Text('Готово'),
+                : const Text(
+                    'Готово',
+                    style: TextStyle(color: CupertinoColors.white),
+                  ),
           ),
           const SizedBox(height: 12),
           CupertinoButton(
